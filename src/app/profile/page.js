@@ -1,6 +1,7 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { IMaskInput } from "react-imask";
@@ -209,21 +210,6 @@ export default function Profile() {
         </div>
       )}
 
-      {successMessage && (
-        <div
-          style={{
-            backgroundColor: "#d4edda",
-            color: "#155724",
-            padding: 12,
-            borderRadius: 4,
-            border: "1px solid #c3e6cb",
-            marginBottom: 20,
-          }}
-        >
-          {successMessage}
-        </div>
-      )}
-
       <form
         onSubmit={handleSubmit}
         style={{ display: "flex", flexDirection: "column", gap: 15 }}
@@ -325,6 +311,34 @@ export default function Profile() {
           {loading ? "Salvando..." : "Salvar Perfil"}
         </button>
       </form>
+
+      {successMessage && (
+        <div
+          style={{
+            textAlign: "center",
+            backgroundColor: "#d4edda",
+            color: "#155724",
+            padding: 12,
+            borderRadius: 4,
+            border: "1px solid #c3e6cb",
+            marginBottom: 20,
+          }}
+        >
+          {successMessage}
+          <div
+            style={{
+              textAlign: "center",
+              backgroundColor: "#d4edda",
+              color: "#155724",
+              padding: 12,
+              borderRadius: 4,
+              border: "1px solid #c3e6cb",
+            }}
+          >
+            <Link href="/">Retornar para a página inicial.</Link>
+          </div>
+        </div>
+      )}
 
       <button
         onClick={handleDeleteAccount}
