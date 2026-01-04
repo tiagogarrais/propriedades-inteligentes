@@ -19,7 +19,7 @@ export default function Home() {
 
       {/* Hero Section */}
       <div className="max-w-4xl mx-auto text-center">
-        <h1 className="text-4xl font-bold text-gray-900 mb-6">
+        <h1 className="text-6xl md:text-8xl font-bold text-gray-900 mb-6 leading-tight">
           Propriedades Inteligentes
         </h1>
         <p className="text-xl text-gray-600 mb-8">
@@ -41,13 +41,13 @@ export default function Home() {
             </div>
 
             {/* Título Principal - Poderoso */}
-            <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
+            <h2 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
               Sua Fazenda na
               <span className="bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
                 {" "}
                 Palma da Mão
               </span>
-            </h1>
+            </h2>
 
             {/* Subtítulo Persuasivo */}
             <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-4xl mx-auto leading-relaxed">
@@ -62,13 +62,17 @@ export default function Home() {
                 <div className="text-3xl font-bold text-purple-600">24/7</div>
                 <div className="text-sm text-gray-600">Acesso Seguro</div>
               </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-600">🔒</div>
+                <div className="text-sm text-gray-600">100% Seguro</div>
+              </div>
             </div>
 
             {/* CTAs Principais */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
               {session ? (
                 <Link
-                  href="/dashboard"
+                  href="/painel"
                   className="bg-gradient-to-r from-green-600 to-green-700 text-white px-10 py-4 rounded-xl font-bold text-lg hover:from-green-700 hover:to-green-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
                 >
                   🏠 Acessar Meu Painel
@@ -83,14 +87,6 @@ export default function Home() {
                   </Button>
                 </>
               )}
-            </div>
-
-            {/* Prova Social */}
-            <div className="text-center">
-              <div className="flex justify-center items-center space-x-8 opacity-60">
-                <div className="text-xs text-gray-400">⭐⭐⭐⭐⭐</div>
-                <div className="text-xs text-gray-400">🔒 100% Seguro</div>
-              </div>
             </div>
           </div>
         </div>
@@ -456,7 +452,7 @@ export default function Home() {
               )}
               {session && (
                 <Link
-                  href="/dashboard"
+                  href="/painel"
                   className="inline-block bg-white text-gray-900 px-12 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
                 >
                   🏠 Acessar Meu Sistema

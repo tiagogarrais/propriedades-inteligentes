@@ -26,13 +26,13 @@ export default function Dashboard() {
 
   const fetchProfile = async () => {
     try {
-      const response = await fetch("/api/profile");
+      const response = await fetch("/api/perfil");
       const data = await response.json();
       if (data.success) {
         setProfile(data.user);
         // Se não tem nome completo, redirecionar para completar perfil
         if (!data.user.fullName || data.user.fullName.trim() === "") {
-          router.push("/profile?complete=true");
+          router.push("/perfil?complete=true");
         }
       }
     } catch (error) {
@@ -72,24 +72,27 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-xl font-semibold text-green-600 mb-4">
-              Propriedades
-            </h2>
-            <p className="text-gray-600 mb-4">
-              Gerencie suas fazendas e terrenos.
-            </p>
-            <Link href="/properties" className="text-blue-600 hover:underline">
-              Ver Propriedades
-            </Link>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold text-green-600 mb-4">
               Perfil
             </h2>
             <p className="text-gray-600 mb-4">
               Atualize suas informações pessoais.
             </p>
-            <Link href="/profile" className="text-blue-600 hover:underline">
+            <Link href="/perfil" className="text-blue-600 hover:underline">
               Editar Perfil
+            </Link>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-xl font-semibold text-green-600 mb-4">
+              Propriedades
+            </h2>
+            <p className="text-gray-600 mb-4">
+              Gerencie suas fazendas e terrenos.
+            </p>
+            <Link
+              href="/propriedades"
+              className="text-blue-600 hover:underline"
+            >
+              Ver Propriedades
             </Link>
           </div>
           <div className="bg-white p-6 rounded-lg shadow-md">

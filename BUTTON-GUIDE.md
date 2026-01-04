@@ -105,9 +105,9 @@ Todos os botões da aplicação agora usam o componente `Button` padrão com blo
 
 - ✅ `src/app/layout.js` - Botões "Entrar" e "Sair" no header
 - ✅ `src/app/page.js` - Botões "Entrar com Google", "Entrar por E-mail" e "Enviar Link de Acesso"
-- ✅ `src/app/dashboard/page.js` - Botão "Sair"
-- ✅ `src/app/profile/page.js` - Botões "Salvar Perfil" e "Remover Conta"
-- ✅ `src/app/properties/page.js` - Botões "Adicionar Propriedade" e "Criar Propriedade"
+- ✅ `src/app/painel/page.js` - Botão "Sair"
+- ✅ `src/app/perfil/page.js` - Botões "Salvar Perfil" e "Remover Conta"
+- ✅ `src/app/propriedades/page.js` - Botões "Adicionar Propriedade" e "Criar Propriedade"
 
 ### Para Novos Desenvolvimentos:
 

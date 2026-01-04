@@ -33,9 +33,10 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { nome, tipo, localizacao, tamanho } = body;
+    const { nomePropriedade, tipo, localizacao, tamanho, estado, cidade } =
+      body;
 
-    if (!nome || !tipo) {
+    if (!nomePropriedade || !tipo) {
       return NextResponse.json(
         { error: "Nome e tipo são obrigatórios" },
         { status: 400 }
@@ -44,10 +45,12 @@ export async function POST(request) {
 
     const propriedade = await prisma.propriedade.create({
       data: {
-        nome,
+        nomePropriedade,
         tipo,
         localizacao,
         tamanho: tamanho ? parseFloat(tamanho) : null,
+        estado,
+        cidade,
         proprietarioId: session.user.id,
       },
     });
