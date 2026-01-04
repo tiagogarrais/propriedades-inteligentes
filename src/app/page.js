@@ -79,17 +79,7 @@ export default function Home() {
                     onClick={() => signIn("google")}
                     className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-10 py-4 rounded-xl font-bold text-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
                   >
-                    🚀 Começar Agora - Grátis
-                  </Button>
-                  <Button
-                    onClick={() =>
-                      document
-                        .getElementById("demo-section")
-                        .scrollIntoView({ behavior: "smooth" })
-                    }
-                    className="bg-white text-gray-800 px-10 py-4 rounded-xl font-bold text-lg border-2 border-gray-300 hover:border-green-500 hover:bg-green-50 transition-all duration-300 shadow-lg hover:shadow-xl"
-                  >
-                    📹 Ver Demonstração
+                    🚀 Começar Agora
                   </Button>
                 </>
               )}
