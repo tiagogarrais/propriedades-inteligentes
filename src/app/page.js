@@ -80,7 +80,7 @@ export default function Home() {
               ) : (
                 <>
                   <Button
-                    onClick={() => signIn("google")}
+                    onClick={() => signIn("google", { callbackUrl: "/painel" })}
                     className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-10 py-4 rounded-xl font-bold text-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
                   >
                     🚀 Começar Agora
@@ -217,7 +217,7 @@ export default function Home() {
           <div className="text-center mt-16">
             {!session && (
               <Button
-                onClick={() => signIn("google")}
+                onClick={() => signIn("google", { callbackUrl: "/painel" })}
                 className="bg-gradient-to-r from-green-600 to-blue-600 text-white px-12 py-4 rounded-xl font-bold text-lg hover:from-green-700 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
               >
                 🚀 Começar Agora
@@ -351,7 +351,7 @@ export default function Home() {
             </p>
             {!session && (
               <Button
-                onClick={() => signIn("google")}
+                onClick={() => signIn("google", { callbackUrl: "/painel" })}
                 className="bg-gradient-to-r from-green-600 to-blue-600 text-white px-12 py-4 rounded-xl font-bold text-lg hover:from-green-700 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
               >
                 🚀 Começar Agora
@@ -444,7 +444,7 @@ export default function Home() {
               </p>
               {!session && (
                 <Button
-                  onClick={() => signIn("google")}
+                  onClick={() => signIn("google", { callbackUrl: "/painel" })}
                   className="bg-white text-gray-900 px-12 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
                 >
                   🚀 Começar Agora
@@ -473,7 +473,7 @@ export default function Home() {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                signIn("email", { email });
+                signIn("email", { email, callbackUrl: "/painel" });
               }}
               className="flex gap-2"
             >

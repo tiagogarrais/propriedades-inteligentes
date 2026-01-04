@@ -34,6 +34,17 @@ export const authOptions = {
     // you can customize sign in/out/error etc here
   },
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      // Redirecionar para o painel após login bem-sucedido
+      if (url === baseUrl || url.startsWith(baseUrl + "/api/auth")) {
+        return baseUrl + "/painel";
+      }
+      // Permitir outros redirecionamentos relativos
+      if (url.startsWith("/")) return baseUrl + url;
+      // Permitir redirecionamentos para a mesma origem
+      if (new URL(url).origin === baseUrl) return url;
+      return baseUrl + "/painel";
+    },
     async signIn({ user, account, profile }) {
       try {
         console.log("SignIn callback:", {

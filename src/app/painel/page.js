@@ -106,6 +106,12 @@ export default function Dashboard() {
             </Button>
           </div>
         </div>
+
+        <div className="mt-8 text-center">
+          <Link href="/" className="text-blue-600 hover:underline">
+            Voltar para a página inicial
+          </Link>
+        </div>
       </div>
     </div>
   );
