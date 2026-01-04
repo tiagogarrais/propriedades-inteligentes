@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { IMaskInput } from "react-imask";
+import Button from "../components/button";
 
 export default function Profile() {
   const { data: session, status } = useSession();
@@ -21,6 +22,13 @@ export default function Profile() {
   const [errors, setErrors] = useState([]);
   const [successMessage, setSuccessMessage] = useState("");
   const [countries, setCountries] = useState([]);
+  const [isCompletingProfile, setIsCompletingProfile] = useState(false);
+
+  // Verificar se é obrigatório completar perfil
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    setIsCompletingProfile(urlParams.get("complete") === "true");
+  }, []);
 
   // Buscar lista de países
   useEffect(() => {
@@ -92,6 +100,17 @@ export default function Profile() {
     setLoading(true);
     setErrors([]); // Limpar erros anteriores
 
+    // Validação específica para completar perfil obrigatório
+    if (isCompletingProfile) {
+      if (!formData.fullName || formData.fullName.trim() === "") {
+        setErrors([
+          "Nome completo é obrigatório para acessar sua área privada.",
+        ]);
+        setLoading(false);
+        return;
+      }
+    }
+
     const res = await fetch("/api/profile", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -101,6 +120,13 @@ export default function Profile() {
     if (res.ok) {
       const data = await res.json();
       setSuccessMessage("Perfil salvo com sucesso!");
+
+      // Se estava completando perfil obrigatório, redirecionar para dashboard
+      if (isCompletingProfile) {
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 1500);
+      }
     } else {
       try {
         const errorData = await res.json();
@@ -155,7 +181,28 @@ export default function Profile() {
         fontFamily: "Arial, sans-serif",
       }}
     >
-      <h1>Complete seu Perfil</h1>
+      <h1>
+        {isCompletingProfile
+          ? "Complete seu Perfil (Obrigatório)"
+          : "Meu Perfil"}
+      </h1>
+
+      {isCompletingProfile && (
+        <div
+          style={{
+            marginBottom: 20,
+            padding: 12,
+            backgroundColor: "#fff3cd",
+            border: "1px solid #ffeaa7",
+            borderRadius: 4,
+            color: "#856404",
+          }}
+        >
+          <strong>Importante:</strong> Para acessar sua área privada, é
+          necessário preencher seu nome completo. Os outros campos são opcionais
+          e podem ser preenchidos depois.
+        </div>
+      )}
 
       <div
         style={{
@@ -215,41 +262,77 @@ export default function Profile() {
         style={{ display: "flex", flexDirection: "column", gap: 15 }}
       >
         <label>
-          Nome Completo:
+          Nome Completo:{" "}
+          {isCompletingProfile && <span style={{ color: "red" }}>*</span>}
           <input
             type="text"
             value={formData.fullName}
             onChange={(e) =>
               setFormData({ ...formData, fullName: e.target.value })
             }
-            required
+            required={isCompletingProfile}
             style={{ padding: 8, width: "100%" }}
           />
         </label>
+        <div
+          style={{
+            marginTop: 10,
+            marginBottom: 10,
+            padding: 12,
+            backgroundColor: "#e7f3ff",
+            border: "1px solid #b3d9ff",
+            borderRadius: 4,
+            color: "#004085",
+          }}
+        >
+          <h3
+            style={{
+              margin: "0 0 8px 0",
+              fontSize: "16px",
+              fontWeight: "bold",
+            }}
+          >
+            Informações Adicionais (Opcionais)
+          </h3>
+          <p style={{ margin: 0, fontSize: "14px" }}>
+            Os campos abaixo são opcionais e servem para personalizar melhor seu
+            perfil. Você pode preenchê-los agora ou deixar para depois.
+          </p>
+        </div>
         <label>
-          Data de Nascimento:
+          Data de Nascimento:{" "}
+          {!isCompletingProfile && (
+            <span style={{ color: "#666", fontSize: "12px" }}>(opcional)</span>
+          )}
           <input
             type="date"
             value={formData.birthDate}
             onChange={(e) =>
               setFormData({ ...formData, birthDate: e.target.value })
             }
-            required
+            required={false}
             style={{ padding: 8, width: "100%" }}
           />
         </label>
         <label>
-          CPF:
+          CPF:{" "}
+          {!isCompletingProfile && (
+            <span style={{ color: "#666", fontSize: "12px" }}>(opcional)</span>
+          )}
           <IMaskInput
             mask="000.000.000-00"
             value={formData.cpf}
             onAccept={(value) => setFormData({ ...formData, cpf: value })}
             placeholder="000.000.000-00"
+            required={false}
             style={{ padding: 8, width: "100%" }}
           />
         </label>
         <label>
-          WhatsApp (opcional):
+          WhatsApp:{" "}
+          {!isCompletingProfile && (
+            <span style={{ color: "#666", fontSize: "12px" }}>(opcional)</span>
+          )}
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <select
               value={formData.whatsappCountryCode}
@@ -282,6 +365,7 @@ export default function Profile() {
                   ? "(11) 99999-9999"
                   : "Número do telefone"
               }
+              required={false}
               style={{ padding: 8, flex: 1 }}
             />
           </div>
@@ -296,20 +380,6 @@ export default function Profile() {
           />
           Concordo em receber comunicações via WhatsApp
         </label>
-        <button
-          type="submit"
-          disabled={loading}
-          style={{
-            padding: 12,
-            backgroundColor: loading ? "#ccc" : "#007bff",
-            color: "white",
-            border: "none",
-            borderRadius: 4,
-            cursor: loading ? "not-allowed" : "pointer",
-          }}
-        >
-          {loading ? "Salvando..." : "Salvar Perfil"}
-        </button>
       </form>
 
       {successMessage && (
@@ -340,23 +410,35 @@ export default function Profile() {
         </div>
       )}
 
-      <button
+      <Button
+        onClick={handleSubmit}
+        disabled={loading}
+        style={{
+          padding: 12,
+          backgroundColor: loading ? "#ccc" : "#007bff",
+          color: "white",
+          marginTop: 15,
+          marginBottom: 10,
+          width: "100%",
+        }}
+      >
+        {loading ? "Salvando..." : "Salvar Perfil"}
+      </Button>
+
+      <Button
         onClick={handleDeleteAccount}
         disabled={loading}
         style={{
           padding: 12,
           backgroundColor: loading ? "#ccc" : "#dc3545",
           color: "white",
-          border: "none",
-          borderRadius: 4,
-          cursor: loading ? "not-allowed" : "pointer",
           marginTop: 15,
           marginBottom: 50,
           width: "100%",
         }}
       >
         {loading ? "Removendo..." : "Remover Conta"}
-      </button>
+      </Button>
     </div>
   );
 }

@@ -2,31 +2,19 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
-let prisma;
+const connectionString =
+  process.env.DATABASE_URL ||
+  "postgresql://neondb_owner:npg_im83ophwtcLV@ep-muddy-snow-ac20yxgt-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require";
 
-const connectionString = process.env.DATABASE_URL;
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
 
-if (process.env.NODE_ENV === "production") {
-  const pool = new Pool({ connectionString });
-  const adapter = new PrismaPg(pool);
-  prisma = new PrismaClient({ adapter, log: ["error"] });
-} else {
-  // Avoid creating multiple instances in development
-  if (!global.prisma) {
-    const pool = new Pool({ connectionString });
-    const adapter = new PrismaPg(pool);
-    global.prisma = new PrismaClient({
-      adapter,
-      log: ["query", "error", "warn"],
-    });
-  }
-  prisma = global.prisma;
-
-  // Teste de conexão em desenvolvimento
-  prisma
-    .$connect()
-    .then(() => console.log("✅ Banco de dados conectado"))
-    .catch((error) => console.error("❌ Erro ao conectar ao banco:", error));
-}
+const prisma = new PrismaClient({
+  adapter,
+  log:
+    process.env.NODE_ENV === "development"
+      ? ["query", "error", "warn"]
+      : ["error"],
+});
 
 export default prisma;

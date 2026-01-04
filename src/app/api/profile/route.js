@@ -56,9 +56,8 @@ export async function PUT(request) {
     );
   }
 
-  if (!birthDate) {
-    errors.push("Data de nascimento é obrigatória");
-  } else {
+  // Data de nascimento é opcional
+  if (birthDate) {
     const birthDateObj = new Date(birthDate);
     const today = new Date();
     const age = today.getFullYear() - birthDateObj.getFullYear();
@@ -69,10 +68,15 @@ export async function PUT(request) {
     }
   }
 
-  if (!cpfValue) {
-    errors.push("CPF é obrigatório");
-  } else if (!isValidCPF(cpfValue)) {
-    errors.push("CPF inválido. Verifique se todos os dígitos estão corretos");
+  // CPF é opcional, mas se fornecido deve ser válido
+  if (
+    cpfValue &&
+    cpfValue.trim() !== "" &&
+    cpfValue.trim() !== "___.___.___-__"
+  ) {
+    if (!isValidCPF(cpfValue)) {
+      errors.push("CPF inválido. Verifique se todos os dígitos estão corretos");
+    }
   }
 
   // Se houver erros, retornar todos de uma vez
@@ -100,24 +104,31 @@ export async function PUT(request) {
     }
 
     // Atualizar ou criar perfil na tabela Usuario
+    const updateData = {
+      fullName,
+      whatsapp,
+      whatsappCountryCode,
+      whatsappConsent,
+    };
+
+    // Adicionar campos opcionais apenas se fornecidos
+    if (birthDate) {
+      updateData.birthDate = new Date(birthDate);
+    }
+    if (
+      cpfValue &&
+      cpfValue.trim() !== "" &&
+      cpfValue.trim() !== "___.___.___-__"
+    ) {
+      updateData.cpf = cpfValue;
+    }
+
     const updatedProfile = await prisma.usuario.upsert({
       where: { userId: user.id },
-      update: {
-        fullName,
-        birthDate: new Date(birthDate),
-        cpf: cpfValue,
-        whatsapp,
-        whatsappCountryCode,
-        whatsappConsent,
-      },
+      update: updateData,
       create: {
         userId: user.id,
-        fullName,
-        birthDate: new Date(birthDate),
-        cpf: cpfValue,
-        whatsapp,
-        whatsappCountryCode,
-        whatsappConsent,
+        ...updateData,
       },
     });
 

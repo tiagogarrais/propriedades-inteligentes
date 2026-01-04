@@ -3,6 +3,7 @@
 import { SessionProvider } from "next-auth/react";
 import Link from "next/link";
 import { useSession, signOut, signIn } from "next-auth/react";
+import Button from "./components/button";
 import "./globals.css";
 
 function Header() {
@@ -40,7 +41,7 @@ function Header() {
             fontWeight: "bold",
           }}
         >
-          Base para aplicativo web
+          Propriedades Inteligentes
         </Link>
 
         <nav>
@@ -58,37 +59,31 @@ function Header() {
               >
                 Meu Perfil
               </Link>
-              <button
+              <Button
                 onClick={() => signOut()}
                 style={{
                   backgroundColor: "#dc3545",
                   color: "white",
-                  border: "none",
                   padding: "8px 12px",
-                  borderRadius: "4px",
-                  cursor: "pointer",
                   fontSize: "14px",
                 }}
               >
                 Sair
-              </button>
+              </Button>
             </div>
           ) : (
-            <button
+            <Button
               onClick={() => signIn()}
               style={{
                 backgroundColor: "#007bff",
                 color: "white",
-                border: "none",
                 padding: "8px 16px",
-                borderRadius: "4px",
-                cursor: "pointer",
                 fontSize: "14px",
                 fontWeight: "500",
               }}
             >
               Entrar
-            </button>
+            </Button>
           )}
         </nav>
       </div>
@@ -100,14 +95,10 @@ function Footer() {
   return (
     <footer
       style={{
-        position: "fixed",
-        bottom: 0,
-        left: 0,
-        right: 0,
         backgroundColor: "#f8f9fa",
         borderTop: "1px solid #e0e0e0",
         padding: "12px 24px",
-        zIndex: 1000,
+        marginTop: "auto",
       }}
     >
       <div
@@ -119,7 +110,7 @@ function Footer() {
           fontSize: "14px",
         }}
       >
-        © 2025 Base para aplicativo web. Todos os direitos reservados.
+        © 2026 Propriedades Inteligentes. Todos os direitos reservados.
       </div>
     </footer>
   );
@@ -128,14 +119,43 @@ function Footer() {
 export default function RootLayout({ children }) {
   return (
     <html lang="pt-BR">
-      <body style={{ margin: 0, padding: 0 }}>
+      <head>
+        <title>
+          Propriedades Inteligentes - Controle Total da Sua Propriedade Agrícola
+        </title>
+        <meta
+          name="description"
+          content="Gerencie propriedades rurais com inteligência. Cadastro seguro de fazendas, animais, máquinas e plantações com autenticação por e-mail."
+        />
+        <meta
+          name="keywords"
+          content="propriedades inteligentes, gerenciamento agrícola, cadastro propriedades rurais, animais, máquinas, plantações, agricultura"
+        />
+        <meta name="author" content="Tiago das Graças Arrais" />
+        <meta property="og:title" content="Propriedades Inteligentes" />
+        <meta
+          property="og:description"
+          content="Controle completo das suas propriedades agrícolas com nosso sistema web intuitivo."
+        />
+        <meta property="og:type" content="website" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </head>
+      <body
+        style={{
+          margin: 0,
+          padding: 0,
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
         <SessionProvider>
           <Header />
           <main
             style={{
               marginTop: "80px", // Altura do header
-              marginBottom: "60px", // Altura do footer
-              minHeight: "calc(100vh - 140px)", // Altura total menos header e footer
+              flex: 1,
+              paddingBottom: "20px",
             }}
           >
             {children}
