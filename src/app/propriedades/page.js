@@ -44,6 +44,7 @@ export default function PropriedadesPage() {
   const [propriedades, setPropriedades] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
     nomePropriedade: "",
     tipo: "",
@@ -61,12 +62,13 @@ export default function PropriedadesPage() {
   });
   const [cidadesFiltradas, setCidadesFiltradas] = useState([]);
 
-  const { coords, isGeolocationAvailable, isGeolocationEnabled, getPosition } = useGeolocated({
-    positionOptions: {
-      enableHighAccuracy: false,
-    },
-    userDecisionTimeout: 5000,
-  });
+  const { coords, isGeolocationAvailable, isGeolocationEnabled, getPosition } =
+    useGeolocated({
+      positionOptions: {
+        enableHighAccuracy: false,
+      },
+      userDecisionTimeout: 5000,
+    });
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -118,11 +120,46 @@ export default function PropriedadesPage() {
     }
   };
 
+  const handleEdit = (propriedade) => {
+    setFormData({
+      nomePropriedade: propriedade.nomePropriedade || "",
+      tipo: propriedade.tipo || "",
+      localidade: propriedade.localidade || "",
+      tamanho: propriedade.tamanho ? propriedade.tamanho.toString() : "",
+      estado: propriedade.estado || "",
+      cidade: propriedade.cidade || "",
+      latitude: propriedade.latitude ? propriedade.latitude.toString() : "",
+      longitude: propriedade.longitude ? propriedade.longitude.toString() : "",
+    });
+    setEditingId(propriedade.id);
+    setShowForm(true);
+  };
+
+  const handleCancel = () => {
+    setFormData({
+      nomePropriedade: "",
+      tipo: "",
+      localidade: "",
+      tamanho: "",
+      estado: "",
+      cidade: "",
+      latitude: "",
+      longitude: "",
+    });
+    setEditingId(null);
+    setShowForm(false);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("/api/propriedades", {
-        method: "POST",
+      const method = editingId ? "PUT" : "POST";
+      const url = editingId
+        ? `/api/propriedades/${editingId}`
+        : "/api/propriedades";
+
+      const response = await fetch(url, {
+        method,
         headers: {
           "Content-Type": "application/json",
         },
@@ -138,26 +175,32 @@ export default function PropriedadesPage() {
       });
 
       if (response.ok) {
-        const novaPropriedade = await response.json();
-        setPropriedades([novaPropriedade, ...propriedades]);
-        setFormData({
-          nomePropriedade: "",
-          tipo: "",
-          localidade: "",
-          tamanho: "",
-          estado: "",
-          cidade: "",
-          latitude: "",
-          longitude: "",
-        });
-        setShowForm(false);
+        const propriedadeAtualizada = await response.json();
+        if (editingId) {
+          // Atualizar propriedade existente na lista
+          setPropriedades(
+            propriedades.map((prop) =>
+              prop.id === editingId ? propriedadeAtualizada : prop
+            )
+          );
+        } else {
+          // Adicionar nova propriedade
+          setPropriedades([propriedadeAtualizada, ...propriedades]);
+        }
+        handleCancel();
       } else {
         const error = await response.json();
-        alert(error.error || "Erro ao criar propriedade");
+        alert(
+          error.error ||
+            `Erro ao ${editingId ? "atualizar" : "criar"} propriedade`
+        );
       }
     } catch (error) {
-      console.error("Erro ao criar propriedade:", error);
-      alert("Erro ao criar propriedade");
+      console.error(
+        `Erro ao ${editingId ? "atualizar" : "criar"} propriedade:`,
+        error
+      );
+      alert(`Erro ao ${editingId ? "atualizar" : "criar"} propriedade`);
     }
   };
 
@@ -181,7 +224,7 @@ export default function PropriedadesPage() {
             Minhas Propriedades
           </h1>
           <Button
-            onClick={() => setShowForm(!showForm)}
+            onClick={editingId ? handleCancel : () => setShowForm(!showForm)}
             className="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition"
           >
             {showForm ? "Cancelar" : "Adicionar Propriedade"}
@@ -190,7 +233,9 @@ export default function PropriedadesPage() {
 
         {showForm && (
           <div className="bg-white p-6 rounded-lg shadow-md mb-8">
-            <h2 className="text-xl font-semibold mb-4">Nova Propriedade</h2>
+            <h2 className="text-xl font-semibold mb-4">
+              {editingId ? "Editar Propriedade" : "Nova Propriedade"}
+            </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Campo Obrigatório */}
               <div>
@@ -360,7 +405,8 @@ export default function PropriedadesPage() {
                 )}
                 {isGeolocationAvailable && !isGeolocationEnabled && (
                   <p className="text-red-500 text-sm mt-1">
-                    Geolocation está desabilitada. Permita o acesso à localização.
+                    Geolocation está desabilitada. Permita o acesso à
+                    localização.
                   </p>
                 )}
               </div>
@@ -369,7 +415,7 @@ export default function PropriedadesPage() {
                 type="submit"
                 className="w-full bg-green-600 text-white py-2 px-4 rounded-md font-semibold hover:bg-green-700 transition"
               >
-                Criar Propriedade
+                {editingId ? "Atualizar Propriedade" : "Criar Propriedade"}
               </Button>
             </form>
           </div>
@@ -391,9 +437,17 @@ export default function PropriedadesPage() {
                 key={propriedade.id}
                 className="bg-white p-6 rounded-lg shadow-md"
               >
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  {propriedade.nomePropriedade}
-                </h3>
+                <div className="flex justify-between items-start mb-4">
+                  <h3 className="text-xl font-semibold text-gray-900">
+                    {propriedade.nomePropriedade}
+                  </h3>
+                  <Button
+                    onClick={() => handleEdit(propriedade)}
+                    className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition"
+                  >
+                    Editar
+                  </Button>
+                </div>
                 <p className="text-gray-600 mb-1">
                   <strong>Tipo:</strong> {propriedade.tipo}
                 </p>
@@ -409,7 +463,8 @@ export default function PropriedadesPage() {
                 )}
                 {propriedade.latitude && propriedade.longitude && (
                   <p className="text-gray-600 mb-1">
-                    <strong>GPS:</strong> {propriedade.latitude}, {propriedade.longitude}
+                    <strong>GPS:</strong> {propriedade.latitude},{" "}
+                    {propriedade.longitude}
                   </p>
                 )}
                 <p className="text-gray-500 text-sm mt-4">
