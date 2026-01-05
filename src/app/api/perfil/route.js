@@ -2,6 +2,14 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
+// Função para formatar data de forma consistente (sempre retorna YYYY-MM-DD)
+function formatDateToLocal(date) {
+  if (!date) return "";
+  // Usar a string ISO diretamente para evitar problemas de timezone
+  const isoString = date.toISOString();
+  return isoString.split("T")[0];
+}
+
 // Função simples para validar CPF
 function isValidCPF(cpf) {
   // Remove caracteres não numéricos
@@ -50,11 +58,7 @@ export async function PUT(request) {
   // Validações detalhadas
   const errors = [];
 
-  if (!fullName || fullName.trim().length < 2) {
-    errors.push(
-      "Nome completo é obrigatório e deve ter pelo menos 2 caracteres"
-    );
-  }
+  // Validações serão feitas depois de verificar se existe perfil
 
   // Data de nascimento é opcional
   if (birthDate) {
@@ -103,24 +107,83 @@ export async function PUT(request) {
       return new Response("Usuário não encontrado", { status: 404 });
     }
 
+    // Verificar se já existe um perfil
+    const existingProfile = await prisma.usuario.findUnique({
+      where: { userId: user.id },
+    });
+
+    // Ajustar validação baseada na existência de perfil
+    if (!existingProfile && (!fullName || fullName.trim().length < 2)) {
+      errors.push("Nome completo é obrigatório para criar o perfil");
+    }
+
+    // Data de nascimento é opcional
+    if (birthDate) {
+      const birthDateObj = new Date(birthDate);
+      const today = new Date();
+      const age = today.getFullYear() - birthDateObj.getFullYear();
+      if (age < 18 || age > 120) {
+        errors.push(
+          "Data de nascimento inválida (idade deve ser entre 18 e 120 anos)"
+        );
+      }
+    }
+
+    // CPF é opcional, mas se fornecido deve ser válido
+    if (
+      cpfValue &&
+      cpfValue.trim() !== "" &&
+      cpfValue.trim() !== "___.___.___-__"
+    ) {
+      if (!isValidCPF(cpfValue)) {
+        errors.push(
+          "CPF inválido. Verifique se todos os dígitos estão corretos"
+        );
+      }
+    }
+
+    // Se houver erros, retornar todos de uma vez
+    if (errors.length > 0) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          errors: errors,
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
     // Atualizar ou criar perfil na tabela Usuario
     const updateData = {
-      fullName,
-      whatsapp,
-      whatsappCountryCode,
-      whatsappConsent,
+      fullName: fullName && fullName.trim() !== "" ? fullName : null,
+      whatsapp: whatsapp && whatsapp.trim() !== "" ? whatsapp : null,
+      whatsappCountryCode:
+        whatsappCountryCode && whatsappCountryCode.trim() !== ""
+          ? whatsappCountryCode
+          : "55",
+      whatsappConsent: whatsappConsent || false,
     };
 
-    // Adicionar campos opcionais apenas se fornecidos
-    if (birthDate) {
-      updateData.birthDate = new Date(birthDate);
+    // Tratar campos opcionais - definir como null se vazios
+    if (birthDate && birthDate.trim() !== "") {
+      // Criar data como UTC para garantir consistência
+      const [year, month, day] = birthDate.split("-").map(Number);
+      updateData.birthDate = new Date(Date.UTC(year, month - 1, day));
+    } else {
+      updateData.birthDate = null;
     }
+
     if (
       cpfValue &&
       cpfValue.trim() !== "" &&
       cpfValue.trim() !== "___.___.___-__"
     ) {
       updateData.cpf = cpfValue;
+    } else {
+      updateData.cpf = null;
     }
 
     const updatedProfile = await prisma.usuario.upsert({
@@ -176,9 +239,7 @@ export async function GET(request) {
         success: true,
         user: {
           fullName: profile?.fullName || "",
-          birthDate: profile?.birthDate
-            ? profile.birthDate.toISOString().split("T")[0]
-            : "",
+          birthDate: formatDateToLocal(profile?.birthDate),
           cpf: profile?.cpf || "",
           whatsapp: profile?.whatsapp || "",
           whatsappCountryCode: profile?.whatsappCountryCode || "55",

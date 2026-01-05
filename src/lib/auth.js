@@ -3,7 +3,7 @@ import GoogleProvider from "next-auth/providers/google";
 import EmailProvider from "next-auth/providers/email";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import prisma from "@/lib/prisma";
-import { sendVerificationRequest } from "@/lib/email";
+import { sendVerificationRequest, sendNewUserNotification } from "@/lib/email";
 
 export const authOptions = {
   adapter: PrismaAdapter(prisma), // Usar adapter padrão temporariamente
@@ -53,6 +53,46 @@ export const authOptions = {
           userId: user?.id,
           userIdType: typeof user?.id,
         });
+
+        // Verificar se é um novo usuário (não tem perfil na tabela Usuario)
+        const existingProfile = await prisma.usuario.findUnique({
+          where: { userId: user.id },
+        });
+
+        // Se não tem perfil, é um novo usuário
+        if (!existingProfile) {
+          // Verificar se o e-mail do novo usuário é diferente do e-mail do admin
+          const adminEmail = process.env.EMAIL_SERVER_USER;
+          if (user.email !== adminEmail) {
+            try {
+              // Enviar notificação para o admin
+              await sendNewUserNotification({
+                newUserEmail: user.email,
+                provider: {
+                  server: {
+                    host: process.env.EMAIL_SERVER_HOST,
+                    port: process.env.EMAIL_SERVER_PORT,
+                    auth: {
+                      user: process.env.EMAIL_SERVER_USER,
+                      pass: process.env.EMAIL_SERVER_PASS,
+                    },
+                  },
+                  from: process.env.EMAIL_FROM,
+                },
+              });
+              console.log(
+                `Notificação enviada para ${adminEmail} sobre novo usuário: ${user.email}`
+              );
+            } catch (emailError) {
+              console.error(
+                "Erro ao enviar notificação de novo usuário:",
+                emailError
+              );
+              // Não bloquear o login por erro no e-mail
+            }
+          }
+        }
+
         return true;
       } catch (error) {
         console.error("Erro no callback signIn:", error);

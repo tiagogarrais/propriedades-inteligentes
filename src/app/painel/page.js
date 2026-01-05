@@ -11,6 +11,9 @@ export default function Dashboard() {
   const router = useRouter();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showAdminButton, setShowAdminButton] = useState(false);
+
+  // Verificar se o usuário é admin (feito via API)
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -21,8 +24,22 @@ export default function Dashboard() {
   useEffect(() => {
     if (status === "authenticated") {
       fetchProfile();
+      checkAdminStatus();
     }
   }, [status]);
+
+  const checkAdminStatus = async () => {
+    try {
+      // Tentar acessar a API de admin - se retornar dados, o usuário é admin
+      const response = await fetch("/api/admin/usuarios");
+      if (response.ok) {
+        setShowAdminButton(true);
+      }
+    } catch (error) {
+      // Se der erro, o usuário não é admin
+      setShowAdminButton(false);
+    }
+  };
 
   const fetchProfile = async () => {
     try {
@@ -95,6 +112,22 @@ export default function Dashboard() {
               Ver Propriedades
             </Link>
           </div>
+          {showAdminButton && (
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <h2 className="text-xl font-semibold text-purple-600 mb-4">
+                Administração
+              </h2>
+              <p className="text-gray-600 mb-4">
+                Gerencie usuários e monitore a plataforma.
+              </p>
+              <Link
+                href="/painel-administrativo"
+                className="text-blue-600 hover:underline"
+              >
+                Painel Administrativo
+              </Link>
+            </div>
+          )}
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-xl font-semibold text-green-600 mb-4">Sair</h2>
             <p className="text-gray-600 mb-4">Encerrar sessão.</p>
