@@ -435,24 +435,53 @@ export default function PropriedadesPage() {
             propriedades.map((propriedade) => (
               <div
                 key={propriedade.id}
-                className="bg-white p-6 rounded-lg shadow-md"
+                className="bg-white p-6 rounded-lg shadow-md relative"
               >
-                <h3 className="text-xl text-center font-semibold text-gray-900 mb-4">
+                {/* Ícone de edição no canto superior direito */}
+                <button
+                  onClick={() => handleEdit(propriedade)}
+                  className="absolute top-4 right-4 p-2 text-gray-400 hover:text-blue-600 hover:bg-gray-100 rounded-full transition-colors"
+                  title="Editar propriedade"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                </button>
+
+                {/* Ícone de acesso no canto inferior direito */}
+                <Link
+                  href={`/propriedades/${propriedade.id}`}
+                  className="absolute bottom-4 right-4 p-3 bg-green-50 text-green-600 hover:bg-green-100 hover:text-green-700 rounded-lg transition-all shadow-sm border border-green-200"
+                  title="Acessar propriedade"
+                >
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 7l5 5m0 0l-5 5m5-5H6"
+                    />
+                  </svg>
+                </Link>
+
+                <h3 className="text-xl text-center font-semibold text-gray-900 mb-4 pr-12 pb-12">
                   {propriedade.nomePropriedade}
                 </h3>
-                <div className="flex space-x-2">
-                  <Button
-                    onClick={() => handleEdit(propriedade)}
-                    className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition"
-                  >
-                    Editar
-                  </Button>
-                  <Link href={`/propriedades/${propriedade.id}`}>
-                    <Button className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 transition">
-                      Acessar propriedade
-                    </Button>
-                  </Link>
-                </div>
                 <p className="text-gray-600 mb-1">
                   <strong>Tipo:</strong> {propriedade.tipo}
                 </p>
