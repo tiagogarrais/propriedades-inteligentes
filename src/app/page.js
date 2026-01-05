@@ -4,13 +4,22 @@ import { signIn, useSession } from "next-auth/react";
 import { useState } from "react";
 import Link from "next/link";
 import Button from "./components/button";
+import {
+  Tractor,
+  Beef,
+  Wrench,
+  Shovel,
+  Dog,
+  Hammer,
+  TreeDeciduous,
+} from "lucide-react";
 
 export default function Home() {
   const { data: session, status } = useSession();
   const [email, setEmail] = useState("");
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-emerald-50">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-emerald-50 pt-8">
       {/* Teste de CSS */}
       {/* <div className="test-bg">
         <h2>TESTE: Se você vê este texto branco em fundo vermelho, o CSS está funcionando!</h2>
@@ -19,12 +28,41 @@ export default function Home() {
 
       {/* Hero Section */}
       <div className="max-w-4xl mx-auto text-center">
+        <div className="flex justify-center space-x-6 mb-8">
+          <Tractor className="w-16 h-16 text-green-600" />
+          <Beef className="w-16 h-16 text-green-600" />
+          <Wrench className="w-16 h-16 text-green-600" />
+          <Shovel className="w-16 h-16 text-green-600" />
+          <Dog className="w-16 h-16 text-green-600" />
+          <Hammer className="w-16 h-16 text-green-600" />
+          <TreeDeciduous className="w-16 h-16 text-green-600" />
+        </div>
         <h1 className="text-6xl md:text-8xl font-bold text-gray-900 mb-6 leading-tight">
           Propriedades Inteligentes
         </h1>
         <p className="text-xl text-gray-600 mb-8">
           Sistema completo para gestão rural moderna
         </p>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+        {session ? (
+          <Link
+            href="/painel"
+            className="bg-gradient-to-r from-green-600 to-green-700 text-white px-10 py-4 rounded-xl font-bold text-lg hover:from-green-700 hover:to-green-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+          >
+            🏠 Acessar Meu Painel
+          </Link>
+        ) : (
+          <>
+            <Button
+              onClick={() => signIn("google", { callbackUrl: "/painel" })}
+              className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-10 py-4 rounded-xl font-bold text-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+            >
+              🚀 Começar Agora
+            </Button>
+          </>
+        )}
       </div>
 
       {/* <div className="absolute inset-0 bg-gradient-to-r from-green-400/10 to-blue-500/10"></div> */}
@@ -35,11 +73,6 @@ export default function Home() {
       <div className="relative py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            {/* Badge de Destaque */}
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-green-100 text-green-800 text-sm font-medium mb-8">
-              🚀 Sistema Completo para Produtores Rurais
-            </div>
-
             {/* Título Principal - Poderoso */}
             <h2 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
               Sua Fazenda na
