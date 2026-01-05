@@ -50,6 +50,8 @@ export async function POST(request) {
       tamanho,
       estado,
       cidade,
+      latitude,
+      longitude,
       sessionToken,
     } = body;
 
@@ -96,6 +98,8 @@ export async function POST(request) {
         tamanho: tamanho ? parseFloat(tamanho) : null,
         estado: estado || null,
         cidade: cidade || null,
+        latitude: latitude ? parseFloat(latitude) : null,
+        longitude: longitude ? parseFloat(longitude) : null,
         proprietarioId: userId,
       },
     });

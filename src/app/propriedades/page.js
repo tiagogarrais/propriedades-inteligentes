@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Button from "../components/button";
+import { useGeolocated } from "react-geolocated";
 
 // Mapeamento de códigos de estado para siglas
 const stateCodeToSigla = {
@@ -50,6 +51,8 @@ export default function PropriedadesPage() {
     tamanho: "",
     estado: "",
     cidade: "",
+    latitude: "",
+    longitude: "",
   });
 
   const [estadosCidades, setEstadosCidades] = useState({
@@ -57,6 +60,13 @@ export default function PropriedadesPage() {
     cities: [],
   });
   const [cidadesFiltradas, setCidadesFiltradas] = useState([]);
+
+  const { coords, isGeolocationAvailable, isGeolocationEnabled, getPosition } = useGeolocated({
+    positionOptions: {
+      enableHighAccuracy: false,
+    },
+    userDecisionTimeout: 5000,
+  });
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -137,6 +147,8 @@ export default function PropriedadesPage() {
           tamanho: "",
           estado: "",
           cidade: "",
+          latitude: "",
+          longitude: "",
         });
         setShowForm(false);
       } else {
@@ -296,6 +308,63 @@ export default function PropriedadesPage() {
                   placeholder="Ex: 50.5 (opcional)"
                 />
               </div>
+
+              <div>
+                <label className="block text-gray-700 mb-2">
+                  GPS da sede principal ou entrada principal
+                </label>
+                <div className="flex space-x-2">
+                  <input
+                    type="number"
+                    step="any"
+                    value={formData.latitude}
+                    onChange={(e) =>
+                      setFormData({ ...formData, latitude: e.target.value })
+                    }
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    placeholder="Latitude (opcional)"
+                  />
+                  <input
+                    type="number"
+                    step="any"
+                    value={formData.longitude}
+                    onChange={(e) =>
+                      setFormData({ ...formData, longitude: e.target.value })
+                    }
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    placeholder="Longitude (opcional)"
+                  />
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      if (coords) {
+                        setFormData({
+                          ...formData,
+                          latitude: coords.latitude.toString(),
+                          longitude: coords.longitude.toString(),
+                        });
+                      } else {
+                        getPosition();
+                      }
+                    }}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-700 transition"
+                    disabled={!isGeolocationAvailable || !isGeolocationEnabled}
+                  >
+                    {coords ? "Atualizar" : "Obter GPS"}
+                  </Button>
+                </div>
+                {!isGeolocationAvailable && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Geolocation não está disponível neste navegador.
+                  </p>
+                )}
+                {isGeolocationAvailable && !isGeolocationEnabled && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Geolocation está desabilitada. Permita o acesso à localização.
+                  </p>
+                )}
+              </div>
+
               <Button
                 type="submit"
                 className="w-full bg-green-600 text-white py-2 px-4 rounded-md font-semibold hover:bg-green-700 transition"
@@ -336,6 +405,11 @@ export default function PropriedadesPage() {
                 {propriedade.tamanho && (
                   <p className="text-gray-600 mb-1">
                     <strong>Tamanho:</strong> {propriedade.tamanho} ha
+                  </p>
+                )}
+                {propriedade.latitude && propriedade.longitude && (
+                  <p className="text-gray-600 mb-1">
+                    <strong>GPS:</strong> {propriedade.latitude}, {propriedade.longitude}
                   </p>
                 )}
                 <p className="text-gray-500 text-sm mt-4">

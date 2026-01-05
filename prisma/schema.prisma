@@ -78,6 +78,8 @@ model Propriedade {
   tamanho     Float?   // Tamanho em hectares
   estado      String?  // Sigla do estado (UF)
   cidade      String?  // Nome da cidade
+  latitude    Float?   // Latitude GPS
+  longitude   Float?   // Longitude GPS
   proprietarioId String // ID do proprietário (User)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
