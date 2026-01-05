@@ -5,70 +5,12 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Button from "../components/button";
-import { useGeolocated } from "react-geolocated";
-
-// Mapeamento de códigos de estado para siglas
-const stateCodeToSigla = {
-  11: "RO",
-  12: "AC",
-  13: "AM",
-  14: "RR",
-  15: "PA",
-  16: "AP",
-  17: "TO",
-  21: "MA",
-  22: "PI",
-  23: "CE",
-  24: "RN",
-  25: "PB",
-  26: "PE",
-  27: "AL",
-  28: "SE",
-  29: "BA",
-  31: "MG",
-  32: "ES",
-  33: "RJ",
-  35: "SP",
-  41: "PR",
-  42: "SC",
-  43: "RS",
-  50: "MS",
-  51: "MT",
-  52: "GO",
-  53: "DF",
-};
 
 export default function PropriedadesPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [propriedades, setPropriedades] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [formData, setFormData] = useState({
-    nomePropriedade: "",
-    tipo: "",
-    localidade: "",
-    tamanho: "",
-    estado: "",
-    cidade: "",
-    latitude: "",
-    longitude: "",
-  });
-
-  const [estadosCidades, setEstadosCidades] = useState({
-    states: {},
-    cities: [],
-  });
-  const [cidadesFiltradas, setCidadesFiltradas] = useState([]);
-
-  const { coords, isGeolocationAvailable, isGeolocationEnabled, getPosition } =
-    useGeolocated({
-      positionOptions: {
-        enableHighAccuracy: false,
-      },
-      userDecisionTimeout: 5000,
-    });
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -77,32 +19,6 @@ export default function PropriedadesPage() {
       fetchPropriedades();
     }
   }, [status, router]);
-
-  // Carregar dados de estados e cidades
-  useEffect(() => {
-    const loadEstadosCidades = async () => {
-      try {
-        const response = await fetch("/estados-cidades2.json");
-        const data = await response.json();
-        setEstadosCidades(data);
-      } catch (error) {
-        console.error("Erro ao carregar estados e cidades:", error);
-      }
-    };
-    loadEstadosCidades();
-  }, []);
-
-  // Filtrar cidades baseado no estado selecionado
-  useEffect(() => {
-    if (formData.estado) {
-      const cidades = estadosCidades.cities.filter(
-        (city) => city.state_id === parseInt(formData.estado)
-      );
-      setCidadesFiltradas(cidades.sort((a, b) => a.name.localeCompare(b.name)));
-    } else {
-      setCidadesFiltradas([]);
-    }
-  }, [formData.estado, estadosCidades]);
 
   const fetchPropriedades = async () => {
     try {
@@ -121,87 +37,7 @@ export default function PropriedadesPage() {
   };
 
   const handleEdit = (propriedade) => {
-    setFormData({
-      nomePropriedade: propriedade.nomePropriedade || "",
-      tipo: propriedade.tipo || "",
-      localidade: propriedade.localidade || "",
-      tamanho: propriedade.tamanho ? propriedade.tamanho.toString() : "",
-      estado: propriedade.estado || "",
-      cidade: propriedade.cidade || "",
-      latitude: propriedade.latitude ? propriedade.latitude.toString() : "",
-      longitude: propriedade.longitude ? propriedade.longitude.toString() : "",
-    });
-    setEditingId(propriedade.id);
-    setShowForm(true);
-  };
-
-  const handleCancel = () => {
-    setFormData({
-      nomePropriedade: "",
-      tipo: "",
-      localidade: "",
-      tamanho: "",
-      estado: "",
-      cidade: "",
-      latitude: "",
-      longitude: "",
-    });
-    setEditingId(null);
-    setShowForm(false);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const method = editingId ? "PUT" : "POST";
-      const url = editingId
-        ? `/api/propriedades/${editingId}`
-        : "/api/propriedades";
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          ...formData,
-          estadoNome: estadosCidades.states[formData.estado] || "",
-          cidadeNome:
-            cidadesFiltradas.find((c) => c.id === parseInt(formData.cidade))
-              ?.name || "",
-          sessionToken: session?.user?.id || session?.user?.email, // Passar ID ou email como fallback
-        }),
-      });
-
-      if (response.ok) {
-        const propriedadeAtualizada = await response.json();
-        if (editingId) {
-          // Atualizar propriedade existente na lista
-          setPropriedades(
-            propriedades.map((prop) =>
-              prop.id === editingId ? propriedadeAtualizada : prop
-            )
-          );
-        } else {
-          // Adicionar nova propriedade
-          setPropriedades([propriedadeAtualizada, ...propriedades]);
-        }
-        handleCancel();
-      } else {
-        const error = await response.json();
-        alert(
-          error.error ||
-            `Erro ao ${editingId ? "atualizar" : "criar"} propriedade`
-        );
-      }
-    } catch (error) {
-      console.error(
-        `Erro ao ${editingId ? "atualizar" : "criar"} propriedade:`,
-        error
-      );
-      alert(`Erro ao ${editingId ? "atualizar" : "criar"} propriedade`);
-    }
+    router.push(`/propriedades/nova?edit=${propriedade.id}`);
   };
 
   if (status === "loading" || loading) {
@@ -223,203 +59,12 @@ export default function PropriedadesPage() {
           <h1 className="text-3xl font-bold text-gray-900">
             Minhas Propriedades
           </h1>
-          <Button
-            onClick={editingId ? handleCancel : () => setShowForm(!showForm)}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition"
-          >
-            {showForm ? "Cancelar" : "Adicionar Propriedade"}
-          </Button>
+          <Link href="/propriedades/nova">
+            <Button className="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition">
+              Adicionar Propriedade
+            </Button>
+          </Link>
         </div>
-
-        {showForm && (
-          <div className="bg-white p-6 rounded-lg shadow-md mb-8">
-            <h2 className="text-xl font-semibold mb-4">
-              {editingId ? "Editar Propriedade" : "Nova Propriedade"}
-            </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Campo Obrigatório */}
-              <div>
-                <label className="block text-gray-700 mb-2 font-medium">
-                  Nome da Propriedade <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.nomePropriedade}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      nomePropriedade: e.target.value,
-                    })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  autoComplete="off"
-                  required
-                />
-              </div>
-
-              {/* Campos Opcionais */}
-              <div>
-                <label className="block text-gray-700 mb-2">Tipo</label>
-                <select
-                  value={formData.tipo}
-                  onChange={(e) =>
-                    setFormData({ ...formData, tipo: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                >
-                  <option value="">Selecione o tipo (opcional)</option>
-                  <option value="Fazenda">Fazenda</option>
-                  <option value="Sítio">Sítio</option>
-                  <option value="Chácara">Chácara</option>
-                  <option value="Terreno">Terreno</option>
-                  <option value="Rancho">Rancho</option>
-                  <option value="Propriedade Rural">Propriedade Rural</option>
-                  <option value="Outro">Outro</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-gray-700 mb-2">Estado (UF)</label>
-                <select
-                  value={formData.estado}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      estado: e.target.value,
-                      cidade: "",
-                    })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                >
-                  <option value="">Selecione o estado (opcional)</option>
-                  {Object.entries(estadosCidades.states)
-                    .sort(([, a], [, b]) =>
-                      stateCodeToSigla[a.split(" ")[0]]?.localeCompare(
-                        stateCodeToSigla[b.split(" ")[0]]
-                      )
-                    )
-                    .map(([code, name]) => (
-                      <option key={code} value={code}>
-                        {stateCodeToSigla[code]} - {name}
-                      </option>
-                    ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-gray-700 mb-2">Cidade</label>
-                <select
-                  value={formData.cidade}
-                  onChange={(e) =>
-                    setFormData({ ...formData, cidade: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  disabled={!formData.estado}
-                >
-                  <option value="">Selecione a cidade (opcional)</option>
-                  {cidadesFiltradas.map((city) => (
-                    <option key={city.id} value={city.id}>
-                      {city.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-gray-700 mb-2">Localidade</label>
-                <input
-                  type="text"
-                  value={formData.localidade}
-                  onChange={(e) =>
-                    setFormData({ ...formData, localidade: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  placeholder="Bairro, distrito ou referência (opcional)"
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-700 mb-2">
-                  Tamanho (hectares)
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={formData.tamanho}
-                  onChange={(e) =>
-                    setFormData({ ...formData, tamanho: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  placeholder="Ex: 50.5 (opcional)"
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-700 mb-2">
-                  GPS da sede principal ou entrada principal
-                </label>
-                <div className="flex space-x-2">
-                  <input
-                    type="number"
-                    step="any"
-                    value={formData.latitude}
-                    onChange={(e) =>
-                      setFormData({ ...formData, latitude: e.target.value })
-                    }
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="Latitude (opcional)"
-                  />
-                  <input
-                    type="number"
-                    step="any"
-                    value={formData.longitude}
-                    onChange={(e) =>
-                      setFormData({ ...formData, longitude: e.target.value })
-                    }
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="Longitude (opcional)"
-                  />
-                  <Button
-                    type="button"
-                    onClick={() => {
-                      if (coords) {
-                        setFormData({
-                          ...formData,
-                          latitude: coords.latitude.toString(),
-                          longitude: coords.longitude.toString(),
-                        });
-                      } else {
-                        getPosition();
-                      }
-                    }}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-700 transition"
-                    disabled={!isGeolocationAvailable || !isGeolocationEnabled}
-                  >
-                    {coords ? "Atualizar" : "Obter GPS"}
-                  </Button>
-                </div>
-                {!isGeolocationAvailable && (
-                  <p className="text-red-500 text-sm mt-1">
-                    Geolocation não está disponível neste navegador.
-                  </p>
-                )}
-                {isGeolocationAvailable && !isGeolocationEnabled && (
-                  <p className="text-red-500 text-sm mt-1">
-                    Geolocation está desabilitada. Permita o acesso à
-                    localização.
-                  </p>
-                )}
-              </div>
-
-              <Button
-                type="submit"
-                className="w-full bg-green-600 text-white py-2 px-4 rounded-md font-semibold hover:bg-green-700 transition"
-              >
-                {editingId ? "Atualizar Propriedade" : "Criar Propriedade"}
-              </Button>
-            </form>
-          </div>
-        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {propriedades.length === 0 ? (
