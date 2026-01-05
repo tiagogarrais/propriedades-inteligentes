@@ -128,6 +128,9 @@ model Animal {
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
   deletedAt           DateTime?   // Soft delete - quando não é null, o animal está excluído
+  vendido             Boolean     @default(false) // Indica se o animal foi vendido
+  emailComprador      String?     // Email do comprador quando vendido
+  dataVenda           DateTime?   // Data da venda
 
   @@unique([rebanhoId, numeroIdentificacao])
 }

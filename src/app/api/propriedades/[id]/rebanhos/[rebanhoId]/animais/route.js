@@ -11,6 +11,7 @@ export async function GET(request, { params }) {
     const { id: propriedadeId, rebanhoId } = await params;
     const { searchParams } = new URL(request.url);
     const showDeleted = searchParams.get("deleted") === "true";
+    const showSold = searchParams.get("sold") === "true";
 
     // Se não conseguiu userId via session.user.id, tentar buscar pelo email
     if (!userId && session?.user?.email) {
@@ -47,6 +48,7 @@ export async function GET(request, { params }) {
       where: {
         rebanhoId,
         deletedAt: showDeleted ? { not: null } : null, // Se showDeleted=true, mostra excluídos; senão, mostra ativos
+        vendido: showSold ? true : false, // Se showSold=true, mostra vendidos; senão, mostra não vendidos
       },
       orderBy: { createdAt: "desc" },
     });

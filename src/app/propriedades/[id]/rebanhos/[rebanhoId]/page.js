@@ -15,8 +15,9 @@ export default function RebanhoPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [activeTab, setActiveTab] = useState("ativos"); // 'ativos' ou 'excluidos'
+  const [activeTab, setActiveTab] = useState("ativos"); // 'ativos', 'vendidos' ou 'excluidos'
   const [animaisAtivosCount, setAnimaisAtivosCount] = useState(0);
+  const [animaisVendidosCount, setAnimaisVendidosCount] = useState(0);
   const [animaisExcluidosCount, setAnimaisExcluidosCount] = useState(0);
   const [numeroIdentificacaoError, setNumeroIdentificacaoError] = useState("");
   const [formData, setFormData] = useState({
@@ -38,7 +39,12 @@ export default function RebanhoPage() {
   const fetchAnimais = useCallback(
     async (tab = "ativos") => {
       try {
-        const queryParam = tab === "excluidos" ? "?deleted=true" : "";
+        let queryParam = "";
+        if (tab === "excluidos") {
+          queryParam = "?deleted=true";
+        } else if (tab === "vendidos") {
+          queryParam = "?sold=true";
+        }
         const response = await fetch(
           `/api/propriedades/${propriedadeId}/rebanhos/${rebanhoId}/animais${queryParam}`,
           {
@@ -68,6 +74,16 @@ export default function RebanhoPage() {
       if (ativosResponse.ok) {
         const ativos = await ativosResponse.json();
         setAnimaisAtivosCount(ativos.length);
+      }
+
+      // Buscar vendidos
+      const vendidosResponse = await fetch(
+        `/api/propriedades/${propriedadeId}/rebanhos/${rebanhoId}/animais?sold=true`,
+        { credentials: "include" }
+      );
+      if (vendidosResponse.ok) {
+        const vendidos = await vendidosResponse.json();
+        setAnimaisVendidosCount(vendidos.length);
       }
 
       // Buscar excluídos
@@ -314,6 +330,78 @@ export default function RebanhoPage() {
     }
   };
 
+  const handleSell = async (animalId) => {
+    const emailComprador = prompt("Digite o email do comprador:");
+    if (!emailComprador) {
+      return;
+    }
+
+    if (!emailComprador.includes("@")) {
+      alert("Email inválido. Deve conter @.");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `/api/propriedades/${propriedadeId}/rebanhos/${rebanhoId}/animais/${animalId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({ action: "sell", emailComprador }),
+        }
+      );
+
+      if (response.ok) {
+        // Remover o animal da lista atual (ativos)
+        setAnimais(animais.filter((animal) => animal.id !== animalId));
+        alert("Animal vendido com sucesso!");
+        fetchAnimaisCounts(); // Atualizar contagens
+      } else {
+        const error = await response.json();
+        alert(`Erro ao vender animal: ${error.error}`);
+      }
+    } catch (error) {
+      console.error("Erro ao vender animal:", error);
+      alert("Erro ao vender animal");
+    }
+  };
+
+  const handleUnsell = async (animalId) => {
+    if (!confirm("Tem certeza que deseja cancelar a venda deste animal?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `/api/propriedades/${propriedadeId}/rebanhos/${rebanhoId}/animais/${animalId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({ action: "unsell" }),
+        }
+      );
+
+      if (response.ok) {
+        // Remover o animal da lista atual (vendidos)
+        setAnimais(animais.filter((animal) => animal.id !== animalId));
+        alert("Venda cancelada com sucesso!");
+        fetchAnimaisCounts(); // Atualizar contagens
+      } else {
+        const error = await response.json();
+        alert(`Erro ao cancelar venda: ${error.error}`);
+      }
+    } catch (error) {
+      console.error("Erro ao cancelar venda:", error);
+      alert("Erro ao cancelar venda");
+    }
+  };
+
   if (status === "loading" || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -367,6 +455,16 @@ export default function RebanhoPage() {
               }`}
             >
               Ativos ({animaisAtivosCount})
+            </button>
+            <button
+              onClick={() => setActiveTab("vendidos")}
+              className={`px-4 py-2 rounded-t-lg font-medium transition ${
+                activeTab === "vendidos"
+                  ? "bg-white text-gray-900 border-t border-l border-r border-gray-200"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              Vendidos ({animaisVendidosCount})
             </button>
             <button
               onClick={() => setActiveTab("excluidos")}
@@ -524,6 +622,8 @@ export default function RebanhoPage() {
             <p className="text-gray-500 text-center py-8">
               {activeTab === "ativos"
                 ? "Nenhum animal ativo cadastrado ainda."
+                : activeTab === "vendidos"
+                ? "Nenhum animal vendido."
                 : "Nenhum animal excluído."}
             </p>
           ) : (
@@ -548,10 +648,25 @@ export default function RebanhoPage() {
                             Editar
                           </Button>
                           <Button
+                            onClick={() => handleSell(animal.id)}
+                            className="bg-yellow-600 text-white px-3 py-1 rounded text-sm hover:bg-yellow-700 transition"
+                          >
+                            Vender
+                          </Button>
+                          <Button
                             onClick={() => handleDelete(animal.id)}
                             className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition"
                           >
                             Excluir
+                          </Button>
+                        </>
+                      ) : activeTab === "vendidos" ? (
+                        <>
+                          <Button
+                            onClick={() => handleUnsell(animal.id)}
+                            className="bg-orange-600 text-white px-3 py-1 rounded text-sm hover:bg-orange-700 transition"
+                          >
+                            Cancelar Venda
                           </Button>
                         </>
                       ) : (
@@ -592,6 +707,17 @@ export default function RebanhoPage() {
                     {animal.pesoAtual && (
                       <p>
                         <strong>Peso Atual:</strong> {animal.pesoAtual} kg
+                      </p>
+                    )}
+                    {activeTab === "vendidos" && animal.emailComprador && (
+                      <p>
+                        <strong>Comprador:</strong> {animal.emailComprador}
+                      </p>
+                    )}
+                    {activeTab === "vendidos" && animal.dataVenda && (
+                      <p>
+                        <strong>Data da Venda:</strong>{" "}
+                        {new Date(animal.dataVenda).toLocaleDateString("pt-BR")}
                       </p>
                     )}
                   </div>

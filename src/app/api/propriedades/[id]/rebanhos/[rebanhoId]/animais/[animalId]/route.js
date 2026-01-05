@@ -70,7 +70,8 @@ export async function PUT(request, { params }) {
       sexo,
       pesoAoNascer,
       pesoAtual,
-      action, // Novo campo para ações especiais como 'restore'
+      action, // Novo campo para ações especiais como 'restore', 'sell', 'unsell'
+      emailComprador, // Email do comprador para ação de venda
     } = body;
 
     // Se não conseguiu userId via session.user.id, tentar buscar pelo email
@@ -113,6 +114,39 @@ export async function PUT(request, { params }) {
         data: { deletedAt: null },
       });
       return NextResponse.json({ message: "Animal restaurado com sucesso" });
+    }
+
+    // Se for uma ação de vender
+    if (action === "sell") {
+      if (!emailComprador || !emailComprador.includes("@")) {
+        return NextResponse.json(
+          { error: "Email do comprador é obrigatório e deve ser válido" },
+          { status: 400 }
+        );
+      }
+
+      await prisma.animal.update({
+        where: { id: animalId },
+        data: {
+          vendido: true,
+          emailComprador,
+          dataVenda: new Date(),
+        },
+      });
+      return NextResponse.json({ message: "Animal vendido com sucesso" });
+    }
+
+    // Se for uma ação de cancelar venda
+    if (action === "unsell") {
+      await prisma.animal.update({
+        where: { id: animalId },
+        data: {
+          vendido: false,
+          emailComprador: null,
+          dataVenda: null,
+        },
+      });
+      return NextResponse.json({ message: "Venda cancelada com sucesso" });
     }
 
     // Validação para atualização normal
