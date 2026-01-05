@@ -46,7 +46,7 @@ export default function PropriedadesPage() {
   const [formData, setFormData] = useState({
     nomePropriedade: "",
     tipo: "",
-    localizacao: "",
+    localidade: "",
     tamanho: "",
     estado: "",
     cidade: "",
@@ -94,7 +94,9 @@ export default function PropriedadesPage() {
 
   const fetchPropriedades = async () => {
     try {
-      const response = await fetch("/api/propriedades");
+      const response = await fetch("/api/propriedades", {
+        credentials: "include",
+      });
       if (response.ok) {
         const data = await response.json();
         setPropriedades(data);
@@ -114,12 +116,14 @@ export default function PropriedadesPage() {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({
           ...formData,
           estadoNome: estadosCidades.states[formData.estado] || "",
           cidadeNome:
             cidadesFiltradas.find((c) => c.id === parseInt(formData.cidade))
               ?.name || "",
+          sessionToken: session?.user?.id || session?.user?.email, // Passar ID ou email como fallback
         }),
       });
 
@@ -129,7 +133,7 @@ export default function PropriedadesPage() {
         setFormData({
           nomePropriedade: "",
           tipo: "",
-          localizacao: "",
+          localidade: "",
           tamanho: "",
           estado: "",
           cidade: "",
@@ -176,9 +180,10 @@ export default function PropriedadesPage() {
           <div className="bg-white p-6 rounded-lg shadow-md mb-8">
             <h2 className="text-xl font-semibold mb-4">Nova Propriedade</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Campo Obrigatório */}
               <div>
-                <label className="block text-gray-700 mb-2">
-                  Nome da Propriedade
+                <label className="block text-gray-700 mb-2 font-medium">
+                  Nome da Propriedade <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -194,6 +199,8 @@ export default function PropriedadesPage() {
                   required
                 />
               </div>
+
+              {/* Campos Opcionais */}
               <div>
                 <label className="block text-gray-700 mb-2">Tipo</label>
                 <select
@@ -202,9 +209,8 @@ export default function PropriedadesPage() {
                     setFormData({ ...formData, tipo: e.target.value })
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  required
                 >
-                  <option value="">Selecione o tipo</option>
+                  <option value="">Selecione o tipo (opcional)</option>
                   <option value="Fazenda">Fazenda</option>
                   <option value="Sítio">Sítio</option>
                   <option value="Chácara">Chácara</option>
@@ -214,33 +220,7 @@ export default function PropriedadesPage() {
                   <option value="Outro">Outro</option>
                 </select>
               </div>
-              <div>
-                <label className="block text-gray-700 mb-2">Localização</label>
-                <input
-                  type="text"
-                  value={formData.localizacao}
-                  onChange={(e) =>
-                    setFormData({ ...formData, localizacao: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  placeholder="Cidade, Estado ou endereço"
-                />
-              </div>
-              <div>
-                <label className="block text-gray-700 mb-2">
-                  Tamanho (hectares)
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={formData.tamanho}
-                  onChange={(e) =>
-                    setFormData({ ...formData, tamanho: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  placeholder="Ex: 50.5"
-                />
-              </div>
+
               <div>
                 <label className="block text-gray-700 mb-2">Estado (UF)</label>
                 <select
@@ -253,9 +233,8 @@ export default function PropriedadesPage() {
                     })
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  required
                 >
-                  <option value="">Selecione o estado</option>
+                  <option value="">Selecione o estado (opcional)</option>
                   {Object.entries(estadosCidades.states)
                     .sort(([, a], [, b]) =>
                       stateCodeToSigla[a.split(" ")[0]]?.localeCompare(
@@ -269,6 +248,7 @@ export default function PropriedadesPage() {
                     ))}
                 </select>
               </div>
+
               <div>
                 <label className="block text-gray-700 mb-2">Cidade</label>
                 <select
@@ -277,16 +257,44 @@ export default function PropriedadesPage() {
                     setFormData({ ...formData, cidade: e.target.value })
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  required
                   disabled={!formData.estado}
                 >
-                  <option value="">Selecione a cidade</option>
+                  <option value="">Selecione a cidade (opcional)</option>
                   {cidadesFiltradas.map((city) => (
                     <option key={city.id} value={city.id}>
                       {city.name}
                     </option>
                   ))}
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-gray-700 mb-2">Localidade</label>
+                <input
+                  type="text"
+                  value={formData.localidade}
+                  onChange={(e) =>
+                    setFormData({ ...formData, localidade: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  placeholder="Bairro, distrito ou referência (opcional)"
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-700 mb-2">
+                  Tamanho (hectares)
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.tamanho}
+                  onChange={(e) =>
+                    setFormData({ ...formData, tamanho: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  placeholder="Ex: 50.5 (opcional)"
+                />
               </div>
               <Button
                 type="submit"
@@ -320,9 +328,9 @@ export default function PropriedadesPage() {
                 <p className="text-gray-600 mb-1">
                   <strong>Tipo:</strong> {propriedade.tipo}
                 </p>
-                {propriedade.localizacao && (
+                {propriedade.localidade && (
                   <p className="text-gray-600 mb-1">
-                    <strong>Localização:</strong> {propriedade.localizacao}
+                    <strong>Localidade:</strong> {propriedade.localidade}
                   </p>
                 )}
                 {propriedade.tamanho && (

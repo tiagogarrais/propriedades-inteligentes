@@ -73,8 +73,8 @@ model VerificationToken {
 model Propriedade {
   id          String   @id @default(uuid())
   nomePropriedade String   // Nome da propriedade
-  tipo        String   // Tipo: fazenda, sítio, chácara, etc.
-  localizacao String?  // Localização (endereço ou coordenadas)
+  tipo        String?  // Tipo: fazenda, sítio, chácara, etc. (opcional)
+  localidade String?  // Localidade (endereço ou coordenadas)
   tamanho     Float?   // Tamanho em hectares
   estado      String?  // Sigla do estado (UF)
   cidade      String?  // Nome da cidade

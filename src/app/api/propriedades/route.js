@@ -6,12 +6,22 @@ import prisma from "@/lib/prisma";
 export async function GET(request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    let userId = session?.user?.id;
+
+    // Se não conseguiu userId via session.user.id, tentar buscar pelo email
+    if (!userId && session?.user?.email) {
+      const user = await prisma.user.findUnique({
+        where: { email: session.user.email },
+      });
+      userId = user?.id;
+    }
+
+    if (!userId) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
     const propriedades = await prisma.propriedade.findMany({
-      where: { proprietarioId: session.user.id },
+      where: { proprietarioId: userId },
       orderBy: { createdAt: "desc" },
     });
 
@@ -27,18 +37,53 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
+    // Obter sessão via cookies
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    let userId = session?.user?.id;
+
+    // Ler o body uma única vez
+    const body = await request.json();
+    const {
+      nomePropriedade,
+      tipo,
+      localidade,
+      tamanho,
+      estado,
+      cidade,
+      sessionToken,
+    } = body;
+
+    // Se não conseguiu userId via session.user.id, tentar buscar pelo email
+    if (!userId && session?.user?.email) {
+      console.log("Buscando usuário por email:", session.user.email);
+      const user = await prisma.user.findUnique({
+        where: { email: session.user.email },
+      });
+      userId = user?.id;
+    }
+
+    // Se ainda não conseguiu via cookies, tentar via body
+    if (!userId && sessionToken) {
+      userId = sessionToken;
+    }
+
+    if (!userId) {
+      console.log(
+        "Falha na autenticação - sessão:",
+        !!session,
+        "email:",
+        session?.user?.email,
+        "userId via session:",
+        session?.user?.id,
+        "sessionToken:",
+        !!sessionToken
+      );
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { nomePropriedade, tipo, localizacao, tamanho, estado, cidade } =
-      body;
-
-    if (!nomePropriedade || !tipo) {
+    if (!nomePropriedade) {
       return NextResponse.json(
-        { error: "Nome e tipo são obrigatórios" },
+        { error: "Nome da propriedade é obrigatório" },
         { status: 400 }
       );
     }
@@ -46,12 +91,12 @@ export async function POST(request) {
     const propriedade = await prisma.propriedade.create({
       data: {
         nomePropriedade,
-        tipo,
-        localizacao,
+        tipo: tipo || null,
+        localidade: localidade || null,
         tamanho: tamanho ? parseFloat(tamanho) : null,
-        estado,
-        cidade,
-        proprietarioId: session.user.id,
+        estado: estado || null,
+        cidade: cidade || null,
+        proprietarioId: userId,
       },
     });
 
