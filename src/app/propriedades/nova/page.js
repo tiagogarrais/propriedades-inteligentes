@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Button from "../../components/button";
@@ -38,7 +38,7 @@ const stateCodeToSigla = {
   53: "DF",
 };
 
-export default function NovaPropriedadePage() {
+const NovaPropriedadeForm = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -411,5 +411,13 @@ export default function NovaPropriedadePage() {
         </div>
       </div>
     </div>
+  );
+};
+
+export default function NovaPropriedadePage() {
+  return (
+    <Suspense fallback={<div>Carregando...</div>}>
+      <NovaPropriedadeForm />
+    </Suspense>
   );
 }
