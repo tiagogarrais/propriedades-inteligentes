@@ -121,12 +121,10 @@ export default function Profile() {
       const data = await res.json();
       setSuccessMessage("Perfil salvo com sucesso!");
 
-      // Se estava completando perfil obrigatório, redirecionar para dashboard
-      if (isCompletingProfile) {
-        setTimeout(() => {
-          router.push("/painel");
-        }, 1500);
-      }
+      // Sempre redirecionar para o painel após salvar
+      setTimeout(() => {
+        router.push("/painel");
+      }, 4000); // 4 segundos
     } else {
       try {
         const errorData = await res.json();
@@ -383,12 +381,9 @@ export default function Profile() {
               <span className="text-green-500 text-lg">✓</span>
               <p className="text-green-800 font-semibold">{successMessage}</p>
             </div>
-            <Link
-              href="/"
-              className="text-green-600 hover:text-green-800 underline"
-            >
-              Retornar para a página inicial
-            </Link>
+            <p className="text-green-700 text-sm">
+              Você será redirecionado para o painel em alguns segundos...
+            </p>
           </div>
         )}
 

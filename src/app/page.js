@@ -439,8 +439,7 @@ export default function Home() {
                 Pronto para Transformar Sua Gestão Rural?
               </h3>
               <p className="text-xl mb-8 opacity-90">
-                Junte-se a centenas de produtores que já estão no futuro da
-                agricultura
+                Seja um dos produtores pioneiros no futuro da agricultura
               </p>
               {!session && (
                 <Button
