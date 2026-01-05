@@ -9,6 +9,8 @@ export async function GET(request, { params }) {
     let userId = session?.user?.id;
 
     const { id: propriedadeId, rebanhoId } = await params;
+    const { searchParams } = new URL(request.url);
+    const showDeleted = searchParams.get("deleted") === "true";
 
     // Se não conseguiu userId via session.user.id, tentar buscar pelo email
     if (!userId && session?.user?.email) {
@@ -42,7 +44,10 @@ export async function GET(request, { params }) {
 
     // Buscar animais do rebanho
     const animais = await prisma.animal.findMany({
-      where: { rebanhoId },
+      where: {
+        rebanhoId,
+        deletedAt: showDeleted ? { not: null } : null, // Se showDeleted=true, mostra excluídos; senão, mostra ativos
+      },
       orderBy: { createdAt: "desc" },
     });
 
@@ -109,6 +114,25 @@ export async function POST(request, { params }) {
       return NextResponse.json(
         { error: "Número de identificação é obrigatório" },
         { status: 400 }
+      );
+    }
+
+    // Verificar se já existe um animal com o mesmo número de identificação neste rebanho
+    // Inclui tanto animais ativos quanto excluídos (soft delete)
+    const animalExistente = await prisma.animal.findFirst({
+      where: {
+        rebanhoId,
+        numeroIdentificacao,
+      },
+    });
+
+    if (animalExistente) {
+      return NextResponse.json(
+        {
+          error:
+            "Já existe um animal com este número de identificação neste rebanho",
+        },
+        { status: 409 }
       );
     }
 

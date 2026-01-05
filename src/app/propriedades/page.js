@@ -437,23 +437,21 @@ export default function PropriedadesPage() {
                 key={propriedade.id}
                 className="bg-white p-6 rounded-lg shadow-md"
               >
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-xl font-semibold text-gray-900">
-                    {propriedade.nomePropriedade}
-                  </h3>
-                  <div className="flex space-x-2">
-                    <Button
-                      onClick={() => handleEdit(propriedade)}
-                      className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition"
-                    >
-                      Editar
+                <h3 className="text-xl text-center font-semibold text-gray-900 mb-4">
+                  {propriedade.nomePropriedade}
+                </h3>
+                <div className="flex space-x-2">
+                  <Button
+                    onClick={() => handleEdit(propriedade)}
+                    className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition"
+                  >
+                    Editar
+                  </Button>
+                  <Link href={`/propriedades/${propriedade.id}`}>
+                    <Button className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 transition">
+                      Acessar propriedade
                     </Button>
-                    <Link href={`/propriedades/${propriedade.id}`}>
-                      <Button className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 transition">
-                        Acessar propriedade
-                      </Button>
-                    </Link>
-                  </div>
+                  </Link>
                 </div>
                 <p className="text-gray-600 mb-1">
                   <strong>Tipo:</strong> {propriedade.tipo}
