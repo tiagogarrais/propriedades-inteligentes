@@ -497,8 +497,15 @@ export default function PropriedadesPage() {
                 )}
                 {propriedade.latitude && propriedade.longitude && (
                   <p className="text-gray-600 mb-1">
-                    <strong>GPS:</strong> {propriedade.latitude},{" "}
-                    {propriedade.longitude}
+                    <strong>GPS:</strong>{" "}
+                    <a
+                      href={`https://www.google.com/maps/@${propriedade.latitude},${propriedade.longitude},17z`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 underline"
+                    >
+                      Ver no Google Maps
+                    </a>
                   </p>
                 )}
                 <p className="text-gray-500 text-sm mt-4">
