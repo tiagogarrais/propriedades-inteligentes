@@ -17,7 +17,6 @@ export default function PropriedadePage() {
   const [formData, setFormData] = useState({
     nomeRebanho: "",
     tipo: "",
-    quantidade: "",
   });
 
   useEffect(() => {
@@ -86,7 +85,6 @@ export default function PropriedadePage() {
         setFormData({
           nomeRebanho: "",
           tipo: "",
-          quantidade: "",
         });
         setShowForm(false);
         alert("Rebanho cadastrado com sucesso!");
@@ -204,21 +202,6 @@ export default function PropriedadePage() {
                     <option value="Equino">Equino</option>
                   </select>
                 </div>
-                <div>
-                  <label className="block text-gray-700 mb-2">
-                    Quantidade <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.quantidade}
-                    onChange={(e) =>
-                      setFormData({ ...formData, quantidade: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                    min="1"
-                    required
-                  />
-                </div>
                 <Button
                   type="submit"
                   className="w-full bg-green-600 text-white py-2 px-4 rounded-md font-semibold hover:bg-green-700 transition"
@@ -240,11 +223,19 @@ export default function PropriedadePage() {
                   key={rebanho.id}
                   className="border border-gray-200 p-4 rounded-lg"
                 >
-                  <h3 className="text-lg font-medium">{rebanho.nomeRebanho}</h3>
-                  <p className="text-gray-600">Tipo: {rebanho.tipo}</p>
-                  <p className="text-gray-600">
-                    Quantidade: {rebanho.quantidade}
-                  </p>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="text-lg font-medium">
+                        {rebanho.nomeRebanho}
+                      </h3>
+                      <p className="text-gray-600">Tipo: {rebanho.tipo}</p>
+                    </div>
+                    <Link href={`/propriedades/${id}/rebanhos/${rebanho.id}`}>
+                      <Button className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition">
+                        Gerenciar Animais
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
               ))}
             </div>

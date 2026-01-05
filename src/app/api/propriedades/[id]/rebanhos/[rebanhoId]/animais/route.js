@@ -8,7 +8,7 @@ export async function GET(request, { params }) {
     const session = await getServerSession(authOptions);
     let userId = session?.user?.id;
 
-    const { id: propriedadeId } = await params;
+    const { id: propriedadeId, rebanhoId } = await params;
 
     // Se não conseguiu userId via session.user.id, tentar buscar pelo email
     if (!userId && session?.user?.email) {
@@ -22,30 +22,33 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
-    // Verificar se a propriedade existe e pertence ao usuário
-    const propriedade = await prisma.propriedade.findFirst({
+    // Verificar se o rebanho existe e pertence à propriedade do usuário
+    const rebanho = await prisma.rebanho.findFirst({
       where: {
-        id: propriedadeId,
-        proprietarioId: userId,
+        id: rebanhoId,
+        propriedadeId,
+        propriedade: {
+          proprietarioId: userId,
+        },
       },
     });
 
-    if (!propriedade) {
+    if (!rebanho) {
       return NextResponse.json(
-        { error: "Propriedade não encontrada ou não autorizada" },
+        { error: "Rebanho não encontrado ou não autorizado" },
         { status: 404 }
       );
     }
 
-    // Buscar rebanhos da propriedade
-    const rebanhos = await prisma.rebanho.findMany({
-      where: { propriedadeId },
+    // Buscar animais do rebanho
+    const animais = await prisma.animal.findMany({
+      where: { rebanhoId },
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json(rebanhos);
+    return NextResponse.json(animais);
   } catch (error) {
-    console.error("Erro ao buscar rebanhos:", error);
+    console.error("Erro ao buscar animais:", error);
     return NextResponse.json(
       { error: "Erro interno do servidor" },
       { status: 500 }
@@ -58,11 +61,19 @@ export async function POST(request, { params }) {
     const session = await getServerSession(authOptions);
     let userId = session?.user?.id;
 
-    const { id: propriedadeId } = await params;
+    const { id: propriedadeId, rebanhoId } = await params;
 
     // Ler o body
     const body = await request.json();
-    const { nomeRebanho, tipo } = body;
+    const {
+      numeroIdentificacao,
+      nome,
+      raca,
+      dataNascimento,
+      sexo,
+      pesoAoNascer,
+      pesoAtual,
+    } = body;
 
     // Se não conseguiu userId via session.user.id, tentar buscar pelo email
     if (!userId && session?.user?.email) {
@@ -76,41 +87,48 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
-    // Verificar se a propriedade existe e pertence ao usuário
-    const propriedade = await prisma.propriedade.findFirst({
+    // Verificar se o rebanho existe e pertence à propriedade do usuário
+    const rebanho = await prisma.rebanho.findFirst({
       where: {
-        id: propriedadeId,
-        proprietarioId: userId,
+        id: rebanhoId,
+        propriedadeId,
+        propriedade: {
+          proprietarioId: userId,
+        },
       },
     });
 
-    if (!propriedade) {
+    if (!rebanho) {
       return NextResponse.json(
-        { error: "Propriedade não encontrada ou não autorizada" },
+        { error: "Rebanho não encontrado ou não autorizado" },
         { status: 404 }
       );
     }
 
-    if (!nomeRebanho || !tipo) {
+    if (!numeroIdentificacao) {
       return NextResponse.json(
-        { error: "Nome do rebanho e tipo são obrigatórios" },
+        { error: "Número de identificação é obrigatório" },
         { status: 400 }
       );
     }
 
-    // Criar o rebanho
-    const rebanho = await prisma.rebanho.create({
+    // Criar o animal
+    const animal = await prisma.animal.create({
       data: {
-        nomeRebanho,
-        tipo,
-        quantidade: 0,
-        propriedadeId,
+        numeroIdentificacao,
+        nome: nome || null,
+        raca: raca || null,
+        dataNascimento: dataNascimento ? new Date(dataNascimento) : null,
+        sexo: sexo || null,
+        pesoAoNascer: pesoAoNascer ? parseFloat(pesoAoNascer) : null,
+        pesoAtual: pesoAtual ? parseFloat(pesoAtual) : null,
+        rebanhoId,
       },
     });
 
-    return NextResponse.json(rebanho, { status: 201 });
+    return NextResponse.json(animal, { status: 201 });
   } catch (error) {
-    console.error("Erro ao criar rebanho:", error);
+    console.error("Erro ao criar animal:", error);
     return NextResponse.json(
       { error: "Erro interno do servidor" },
       { status: 500 }

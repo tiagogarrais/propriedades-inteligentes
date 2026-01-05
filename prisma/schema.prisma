@@ -110,4 +110,21 @@ model Rebanho {
   propriedade    Propriedade @relation(fields: [propriedadeId], references: [id], onDelete: Cascade)
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
+
+  animais        Animal[]
+}
+
+model Animal {
+  id                  String      @id @default(uuid())
+  numeroIdentificacao String      // Número único de identificação (brinco, registro, etc.)
+  nome                String?     // Nome do animal (opcional)
+  raca                String?     // Raça do animal
+  dataNascimento      DateTime?   // Data de nascimento
+  sexo                String?     // Macho, Fêmea
+  pesoAoNascer        Float?      // Peso ao nascer em kg
+  pesoAtual           Float?      // Peso atual em kg
+  rebanhoId           String
+  rebanho             Rebanho     @relation(fields: [rebanhoId], references: [id], onDelete: Cascade)
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
 }
