@@ -56,10 +56,23 @@ model Usuario {
   whatsapp          String?  // Número de WhatsApp (opcional)
   whatsappCountryCode String? @default("55") // Código DDI do país (padrão Brasil)
   whatsappConsent   Boolean  @default(false) // Consentimento para comunicações
+  slug              String?  @unique // Identificador único para URLs (slug)
+  slugChangeCount   Int      @default(0) // Contador de alterações do slug (máx 5)
+  slugHistory       SlugHistory[] // Histórico de alterações do slug
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SlugHistory {
+  id        String   @id @default(uuid())
+  userId    String   // ID do usuário (Usuario.id)
+  oldSlug   String?  // Slug anterior (null se era o primeiro)
+  newSlug   String   // Novo slug
+  changedAt DateTime @default(now())
+
+  usuario Usuario @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model VerificationToken {

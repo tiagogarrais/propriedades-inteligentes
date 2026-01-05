@@ -42,6 +42,39 @@ function isValidCPF(cpf) {
   return true;
 }
 
+// Função para validar e sanitizar slug
+function validateAndSanitizeSlug(slug) {
+  if (!slug || typeof slug !== "string") {
+    return { isValid: false, error: "Slug é obrigatório" };
+  }
+
+  // Remover espaços e caracteres especiais, converter para minúsculas
+  const sanitized = slug
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-") // substituir espaços por traços
+    .replace(/[^a-z0-9-]/g, "") // remover caracteres não alfanuméricos exceto traços
+    .replace(/-+/g, "-") // substituir múltiplos traços por um único
+    .replace(/^-|-$/g, ""); // remover traços do início e fim
+
+  if (sanitized.length < 3) {
+    return { isValid: false, error: "Slug deve ter pelo menos 3 caracteres" };
+  }
+
+  if (sanitized.length > 50) {
+    return { isValid: false, error: "Slug deve ter no máximo 50 caracteres" };
+  }
+
+  if (!/^[a-z0-9-]+$/.test(sanitized)) {
+    return {
+      isValid: false,
+      error: "Slug deve conter apenas letras, números e traços",
+    };
+  }
+
+  return { isValid: true, sanitized };
+}
+
 export async function PUT(request) {
   const session = await getServerSession(authOptions);
   if (!session) return new Response("Unauthorized", { status: 401 });
@@ -53,6 +86,7 @@ export async function PUT(request) {
     whatsapp,
     whatsappCountryCode,
     whatsappConsent,
+    slug,
   } = await request.json();
 
   // Validações detalhadas
@@ -142,6 +176,40 @@ export async function PUT(request) {
       }
     }
 
+    // Validar slug
+    let sanitizedSlug = null;
+    if (slug) {
+      const slugValidation = validateAndSanitizeSlug(slug);
+      if (!slugValidation.isValid) {
+        errors.push(slugValidation.error);
+      } else {
+        sanitizedSlug = slugValidation.sanitized;
+      }
+    }
+
+    // Verificar unicidade do slug e limite de alterações
+    if (sanitizedSlug) {
+      const existingSlugUser = await prisma.usuario.findFirst({
+        where: {
+          slug: sanitizedSlug,
+          userId: { not: user.id }, // Excluir o próprio usuário
+        },
+      });
+
+      if (existingSlugUser) {
+        errors.push("Este identificador já está em uso. Escolha outro.");
+      }
+
+      // Verificar limite de alterações se for uma atualização
+      if (existingProfile && existingProfile.slug !== sanitizedSlug) {
+        if (existingProfile.slugChangeCount >= 5) {
+          errors.push(
+            "Você atingiu o limite máximo de 5 alterações do identificador."
+          );
+        }
+      }
+    }
+
     // Se houver erros, retornar todos de uma vez
     if (errors.length > 0) {
       return new Response(
@@ -186,12 +254,35 @@ export async function PUT(request) {
       updateData.cpf = null;
     }
 
+    // Lidar com slug
+    if (sanitizedSlug) {
+      updateData.slug = sanitizedSlug;
+      // Se for uma atualização e o slug mudou, incrementar contador e salvar histórico
+      if (existingProfile && existingProfile.slug !== sanitizedSlug) {
+        updateData.slugChangeCount = existingProfile.slugChangeCount + 1;
+
+        // Salvar no histórico
+        await prisma.slugHistory.create({
+          data: {
+            userId: existingProfile.id,
+            oldSlug: existingProfile.slug,
+            newSlug: sanitizedSlug,
+          },
+        });
+      }
+    }
+
     const updatedProfile = await prisma.usuario.upsert({
       where: { userId: user.id },
       update: updateData,
       create: {
         userId: user.id,
         ...updateData,
+      },
+      include: {
+        slugHistory: {
+          orderBy: { changedAt: "desc" },
+        },
       },
     });
 
@@ -205,6 +296,9 @@ export async function PUT(request) {
           whatsapp: updatedProfile.whatsapp,
           whatsappCountryCode: updatedProfile.whatsappCountryCode,
           whatsappConsent: updatedProfile.whatsappConsent,
+          slug: updatedProfile.slug,
+          slugChangeCount: updatedProfile.slugChangeCount,
+          slugHistory: updatedProfile.slugHistory,
         },
       }),
       { status: 200 }
@@ -232,6 +326,11 @@ export async function GET(request) {
     // Buscar perfil na tabela Usuario
     const profile = await prisma.usuario.findUnique({
       where: { userId: user.id },
+      include: {
+        slugHistory: {
+          orderBy: { changedAt: "desc" },
+        },
+      },
     });
 
     return new Response(
@@ -244,6 +343,9 @@ export async function GET(request) {
           whatsapp: profile?.whatsapp || "",
           whatsappCountryCode: profile?.whatsappCountryCode || "55",
           whatsappConsent: profile?.whatsappConsent || false,
+          slug: profile?.slug || "",
+          slugChangeCount: profile?.slugChangeCount || 0,
+          slugHistory: profile?.slugHistory || [],
         },
       }),
       { status: 200 }

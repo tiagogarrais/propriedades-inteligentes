@@ -17,7 +17,10 @@ export default function Profile() {
     whatsapp: "",
     whatsappCountryCode: "55", // Padrão Brasil
     whatsappConsent: false,
+    slug: "",
   });
+  const [slugHistory, setSlugHistory] = useState([]);
+  const [slugChangeCount, setSlugChangeCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState([]);
   const [successMessage, setSuccessMessage] = useState("");
@@ -63,7 +66,10 @@ export default function Profile() {
             whatsapp: data.user.whatsapp || "",
             whatsappCountryCode: data.user.whatsappCountryCode || "55",
             whatsappConsent: data.user.whatsappConsent || false,
+            slug: data.user.slug || "",
           });
+          setSlugHistory(data.user.slugHistory || []);
+          setSlugChangeCount(data.user.slugChangeCount || 0);
         } else {
           // Se não conseguir buscar, usar dados da sessão como fallback
           setFormData({
@@ -87,8 +93,12 @@ export default function Profile() {
             : "",
           cpf: session.user.cpf || "",
           whatsapp: session.user.whatsapp || "",
+          whatsappCountryCode: session.user.whatsappCountryCode || "55",
           whatsappConsent: session.user.whatsappConsent || false,
+          slug: session.user.slug || "",
         });
+        setSlugHistory([]);
+        setSlugChangeCount(0);
       }
     };
 
@@ -109,6 +119,13 @@ export default function Profile() {
         setLoading(false);
         return;
       }
+      if (!formData.slug || formData.slug.trim() === "") {
+        setErrors([
+          "Identificador único é obrigatório para acessar sua área privada.",
+        ]);
+        setLoading(false);
+        return;
+      }
     }
 
     const res = await fetch("/api/perfil", {
@@ -120,6 +137,8 @@ export default function Profile() {
     if (res.ok) {
       const data = await res.json();
       setSuccessMessage("Perfil salvo com sucesso!");
+      setSlugHistory(data.user.slugHistory || []);
+      setSlugChangeCount(data.user.slugChangeCount || 0);
 
       // Sempre redirecionar para o painel após salvar
       setTimeout(() => {
@@ -245,6 +264,88 @@ export default function Profile() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
+
+            <div>
+              <label className="block text-gray-700 font-semibold mb-2">
+                Identificador Único (Slug):
+                {isCompletingProfile && (
+                  <span className="text-red-500 ml-1">*</span>
+                )}
+                {!isCompletingProfile && (
+                  <span className="text-gray-500 text-sm font-normal ml-1">
+                    (obrigatório)
+                  </span>
+                )}
+              </label>
+              <input
+                type="text"
+                value={formData.slug}
+                onChange={(e) => {
+                  // Sanitizar o slug em tempo real
+                  const sanitized = e.target.value
+                    .toLowerCase()
+                    .replace(/\s+/g, "-")
+                    .replace(/[^a-z0-9-]/g, "")
+                    .replace(/-+/g, "-")
+                    .replace(/^-|-$/g, "");
+                  setFormData({ ...formData, slug: sanitized });
+                }}
+                required
+                placeholder="exemplo: joao-silva-123"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                Este será seu identificador único para páginas públicas. Use
+                apenas letras, números e traços. Espaços serão convertidos
+                automaticamente em traços.
+              </p>
+            </div>
+
+            {/* Histórico de Slugs */}
+            {slugChangeCount > 0 && (
+              <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
+                <h4 className="font-semibold text-amber-800 mb-2">
+                  📊 Histórico do Identificador
+                </h4>
+                <div className="text-sm text-amber-700 space-y-2">
+                  <p>
+                    <strong>Alterações realizadas:</strong> {slugChangeCount} de
+                    5 possíveis
+                  </p>
+                  <p>
+                    <strong>Alterações restantes:</strong> {5 - slugChangeCount}
+                  </p>
+                  {slugHistory.length > 0 && (
+                    <div>
+                      <p className="font-medium">
+                        Seus identificadores anteriores:
+                      </p>
+                      <ul className="list-disc list-inside mt-1 space-y-1">
+                        {slugHistory.map((history, index) => (
+                          <li key={index} className="text-xs">
+                            <code className="bg-amber-100 px-1 py-0.5 rounded text-amber-800">
+                              {history.oldSlug || "(nenhum)"}
+                            </code>
+                            {" → "}
+                            <code className="bg-amber-100 px-1 py-0.5 rounded text-amber-800">
+                              {history.newSlug}
+                            </code>
+                            <span className="text-amber-600 ml-2">
+                              (
+                              {new Date(history.changedAt).toLocaleDateString(
+                                "pt-BR"
+                              )}
+                              )
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
               <h3 className="font-semibold text-blue-800 mb-2">
                 Informações Adicionais (Opcionais)
