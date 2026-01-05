@@ -8,7 +8,7 @@ export async function GET(request, { params }) {
     const session = await getServerSession(authOptions);
     let userId = session?.user?.id;
 
-    const { id } = await params;
+    const { id: propriedadeId } = await params;
 
     // Se não conseguiu userId via session.user.id, tentar buscar pelo email
     if (!userId && session?.user?.email) {
@@ -22,10 +22,10 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
-    // Buscar a propriedade
+    // Verificar se a propriedade existe e pertence ao usuário
     const propriedade = await prisma.propriedade.findFirst({
       where: {
-        id: id,
+        id: propriedadeId,
         proprietarioId: userId,
       },
     });
@@ -37,9 +37,15 @@ export async function GET(request, { params }) {
       );
     }
 
-    return NextResponse.json(propriedade);
+    // Buscar rebanhos da propriedade
+    const rebanhos = await prisma.rebanho.findMany({
+      where: { propriedadeId },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return NextResponse.json(rebanhos);
   } catch (error) {
-    console.error("Erro ao buscar propriedade:", error);
+    console.error("Erro ao buscar rebanhos:", error);
     return NextResponse.json(
       { error: "Erro interno do servidor" },
       { status: 500 }
@@ -47,26 +53,16 @@ export async function GET(request, { params }) {
   }
 }
 
-export async function PUT(request, { params }) {
+export async function POST(request, { params }) {
   try {
     const session = await getServerSession(authOptions);
     let userId = session?.user?.id;
 
-    const { id } = await params;
+    const { id: propriedadeId } = await params;
 
     // Ler o body
     const body = await request.json();
-    const {
-      nomePropriedade,
-      tipo,
-      localidade,
-      tamanho,
-      estado,
-      cidade,
-      latitude,
-      longitude,
-      sessionToken,
-    } = body;
+    const { nomeRebanho, tipo, quantidade } = body;
 
     // Se não conseguiu userId via session.user.id, tentar buscar pelo email
     if (!userId && session?.user?.email) {
@@ -76,56 +72,45 @@ export async function PUT(request, { params }) {
       userId = user?.id;
     }
 
-    // Se ainda não conseguiu via cookies, tentar via body
-    if (!userId && sessionToken) {
-      userId = sessionToken;
-    }
-
     if (!userId) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
-    if (!nomePropriedade) {
-      return NextResponse.json(
-        { error: "Nome da propriedade é obrigatório" },
-        { status: 400 }
-      );
-    }
-
     // Verificar se a propriedade existe e pertence ao usuário
-    const propriedadeExistente = await prisma.propriedade.findFirst({
+    const propriedade = await prisma.propriedade.findFirst({
       where: {
-        id: id,
+        id: propriedadeId,
         proprietarioId: userId,
       },
     });
 
-    if (!propriedadeExistente) {
+    if (!propriedade) {
       return NextResponse.json(
         { error: "Propriedade não encontrada ou não autorizada" },
         { status: 404 }
       );
     }
 
-    // Atualizar a propriedade
-    const propriedadeAtualizada = await prisma.propriedade.update({
-      where: { id: id },
+    if (!nomeRebanho || !tipo || !quantidade) {
+      return NextResponse.json(
+        { error: "Nome do rebanho, tipo e quantidade são obrigatórios" },
+        { status: 400 }
+      );
+    }
+
+    // Criar o rebanho
+    const rebanho = await prisma.rebanho.create({
       data: {
-        nomePropriedade,
-        tipo: tipo || null,
-        localidade: localidade || null,
-        tamanho: tamanho ? parseFloat(tamanho) : null,
-        estado: estado || null,
-        cidade: cidade || null,
-        latitude: latitude ? parseFloat(latitude) : null,
-        longitude: longitude ? parseFloat(longitude) : null,
-        updatedAt: new Date(),
+        nomeRebanho,
+        tipo,
+        quantidade: parseInt(quantidade),
+        propriedadeId,
       },
     });
 
-    return NextResponse.json(propriedadeAtualizada);
+    return NextResponse.json(rebanho, { status: 201 });
   } catch (error) {
-    console.error("Erro ao atualizar propriedade:", error);
+    console.error("Erro ao criar rebanho:", error);
     return NextResponse.json(
       { error: "Erro interno do servidor" },
       { status: 500 }

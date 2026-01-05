@@ -98,4 +98,16 @@ model Propriedade {
   updatedAt   DateTime @updatedAt
 
   proprietario User @relation(fields: [proprietarioId], references: [id], onDelete: Cascade)
+  rebanhos     Rebanho[]
+}
+
+model Rebanho {
+  id             String      @id @default(uuid())
+  nomeRebanho    String
+  tipo           String      // Bovino, Ovino, Caprino, Suíno, Equino
+  quantidade     Int
+  propriedadeId  String
+  propriedade    Propriedade @relation(fields: [propriedadeId], references: [id], onDelete: Cascade)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 }
