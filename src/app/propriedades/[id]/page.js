@@ -20,6 +20,34 @@ export default function PropriedadePage() {
     tipo: "",
     raca: "",
   });
+  const [caracteristicasRaca, setCaracteristicasRaca] = useState(null);
+
+  useEffect(() => {
+    const fetchCaracteristicas = async () => {
+      if (formData.tipo && formData.raca) {
+        try {
+          const response = await fetch(
+            `/api/raca-caracteristicas?tipo=${encodeURIComponent(
+              formData.tipo
+            )}&raca=${encodeURIComponent(formData.raca)}`
+          );
+          if (response.ok) {
+            const data = await response.json();
+            setCaracteristicasRaca(data);
+          } else {
+            setCaracteristicasRaca(null);
+          }
+        } catch (error) {
+          console.error("Erro ao buscar características:", error);
+          setCaracteristicasRaca(null);
+        }
+      } else {
+        setCaracteristicasRaca(null);
+      }
+    };
+
+    fetchCaracteristicas();
+  }, [formData.tipo, formData.raca]);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -89,6 +117,7 @@ export default function PropriedadePage() {
           tipo: "",
           raca: "",
         });
+        setCaracteristicasRaca(null);
         setShowForm(false);
         alert("Rebanho cadastrado com sucesso!");
       } else {
@@ -314,6 +343,77 @@ export default function PropriedadePage() {
                         Parda-alpina (exótica)
                       </option>
                     </select>
+                  </div>
+                )}
+                {caracteristicasRaca && (
+                  <div className="mt-4">
+                    <h4 className="text-lg font-medium mb-2">
+                      Características da Raça
+                    </h4>
+                    <table className="w-full border border-gray-300 rounded-md">
+                      <thead>
+                        <tr className="bg-gray-100">
+                          <th className="border border-gray-300 px-4 py-2 text-left">
+                            Característica
+                          </th>
+                          <th className="border border-gray-300 px-4 py-2 text-left">
+                            Valor
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {caracteristicasRaca.origem && (
+                          <tr>
+                            <td className="border border-gray-300 px-4 py-2">
+                              Origem
+                            </td>
+                            <td className="border border-gray-300 px-4 py-2">
+                              {caracteristicasRaca.origem}
+                            </td>
+                          </tr>
+                        )}
+                        {caracteristicasRaca.pesoNascer && (
+                          <tr>
+                            <td className="border border-gray-300 px-4 py-2">
+                              Peso médio ao nascer
+                            </td>
+                            <td className="border border-gray-300 px-4 py-2">
+                              {caracteristicasRaca.pesoNascer} kg
+                            </td>
+                          </tr>
+                        )}
+                        {caracteristicasRaca.peso10Meses && (
+                          <tr>
+                            <td className="border border-gray-300 px-4 py-2">
+                              Peso médio aos 10 meses
+                            </td>
+                            <td className="border border-gray-300 px-4 py-2">
+                              {caracteristicasRaca.peso10Meses} kg
+                            </td>
+                          </tr>
+                        )}
+                        {caracteristicasRaca.pesoMachoAdulto && (
+                          <tr>
+                            <td className="border border-gray-300 px-4 py-2">
+                              Peso médio do macho adulto
+                            </td>
+                            <td className="border border-gray-300 px-4 py-2">
+                              {caracteristicasRaca.pesoMachoAdulto} kg
+                            </td>
+                          </tr>
+                        )}
+                        {caracteristicasRaca.pesoFemeaAdulta && (
+                          <tr>
+                            <td className="border border-gray-300 px-4 py-2">
+                              Peso médio da fêmea adulta
+                            </td>
+                            <td className="border border-gray-300 px-4 py-2">
+                              {caracteristicasRaca.pesoFemeaAdulta} kg
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
                   </div>
                 )}
                 <Button

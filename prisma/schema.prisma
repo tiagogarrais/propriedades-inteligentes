@@ -136,3 +136,16 @@ model Animal {
 
   @@unique([rebanhoId, numeroIdentificacao])
 }
+
+model RacaCaracteristicas {
+  id                String  @id @default(uuid())
+  tipo              String  // Tipo do animal (Caprino, etc.)
+  raca              String  // Nome da raça
+  origem            String? // Origem da raça
+  pesoNascer        Float?  // Peso médio ao nascer em kg
+  peso10Meses       Float?  // Peso médio aos 10 meses em kg
+  pesoMachoAdulto   Float?  // Peso médio do macho adulto em kg
+  pesoFemeaAdulta   Float?  // Peso médio da fêmea adulta em kg
+
+  @@unique([tipo, raca])
+}
