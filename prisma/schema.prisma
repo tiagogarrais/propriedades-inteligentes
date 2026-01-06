@@ -105,11 +105,13 @@ model Rebanho {
   id             String      @id @default(uuid())
   nomeRebanho    String
   tipo           String      // Bovino, Ovino, Caprino, Suíno, Equino
+  raca           String?     // Raça do rebanho (obrigatório para caprinos)
   quantidade     Int
   propriedadeId  String
   propriedade    Propriedade @relation(fields: [propriedadeId], references: [id], onDelete: Cascade)
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
+  deletedAt      DateTime?   // Soft delete
 
   animais        Animal[]
 }

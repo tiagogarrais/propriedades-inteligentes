@@ -62,7 +62,7 @@ export async function POST(request, { params }) {
 
     // Ler o body
     const body = await request.json();
-    const { nomeRebanho, tipo } = body;
+    const { nomeRebanho, tipo, raca } = body;
 
     // Se não conseguiu userId via session.user.id, tentar buscar pelo email
     if (!userId && session?.user?.email) {
@@ -98,11 +98,19 @@ export async function POST(request, { params }) {
       );
     }
 
+    if (tipo === "Caprino" && !raca) {
+      return NextResponse.json(
+        { error: "Para rebanhos de caprinos, a raça é obrigatória" },
+        { status: 400 }
+      );
+    }
+
     // Criar o rebanho
     const rebanho = await prisma.rebanho.create({
       data: {
         nomeRebanho,
         tipo,
+        raca: raca || null,
         quantidade: 0,
         propriedadeId,
       },

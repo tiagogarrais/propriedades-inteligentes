@@ -50,7 +50,7 @@ export async function GET(request, { params }) {
         deletedAt: showDeleted ? { not: null } : null, // Se showDeleted=true, mostra excluídos; senão, mostra ativos
         vendido: showSold ? true : false, // Se showSold=true, mostra vendidos; senão, mostra não vendidos
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { numeroIdentificacao: "asc" },
     });
 
     return NextResponse.json(animais);

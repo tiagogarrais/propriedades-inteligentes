@@ -536,15 +536,36 @@ export default function RebanhoPage() {
                 </div>
                 <div>
                   <label className="block text-gray-700 mb-2">Raça</label>
-                  <input
-                    type="text"
-                    value={formData.raca}
-                    onChange={(e) =>
-                      setFormData({ ...formData, raca: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="Ex: Nelore, Angus"
-                  />
+                  {rebanho?.tipo?.toLowerCase() === "caprino" ? (
+                    <select
+                      value={formData.raca}
+                      onChange={(e) =>
+                        setFormData({ ...formData, raca: e.target.value })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    >
+                      <option value="">Selecione a raça</option>
+                      <option value="Moxotó (nativa)">Moxotó (nativa)</option>
+                      <option value="Repartida ou Surrão (nativa)">Repartida ou Surrão (nativa)</option>
+                      <option value="Marota ou Curaça (nativa)">Marota ou Curaça (nativa)</option>
+                      <option value="Canindé (nativa)">Canindé (nativa)</option>
+                      <option value="Sem raça definida (SRD)">Sem raça definida (SRD)</option>
+                      <option value="Boer (exótica)">Boer (exótica)</option>
+                      <option value="Anglo-nubiana (exótica)">Anglo-nubiana (exótica)</option>
+                      <option value="Saanen (exótica)">Saanen (exótica)</option>
+                      <option value="Parda-alpina (exótica)">Parda-alpina (exótica)</option>
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      value={formData.raca}
+                      onChange={(e) =>
+                        setFormData({ ...formData, raca: e.target.value })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                      placeholder="Ex: Nelore, Angus"
+                    />
+                  )}
                 </div>
                 <div>
                   <label className="block text-gray-700 mb-2">
@@ -639,6 +660,13 @@ export default function RebanhoPage() {
                       {animal.nome && ` - ${animal.nome}`}
                     </h3>
                     <div className="flex space-x-2">
+                      <Link
+                        href={`/propriedades/${propriedadeId}/rebanhos/${rebanhoId}/animais/${animal.id}`}
+                      >
+                        <Button className="bg-gray-600 text-white px-3 py-1 rounded text-sm hover:bg-gray-700 transition">
+                          Ver detalhes
+                        </Button>
+                      </Link>
                       {activeTab === "ativos" ? (
                         <>
                           <Button

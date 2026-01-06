@@ -14,9 +14,11 @@ export default function PropriedadePage() {
   const [loading, setLoading] = useState(true);
   const [rebanhos, setRebanhos] = useState([]);
   const [showForm, setShowForm] = useState(false);
+  const [activeTab, setActiveTab] = useState("ativos"); // 'ativos' ou 'excluidos'
   const [formData, setFormData] = useState({
     nomeRebanho: "",
     tipo: "",
+    raca: "",
   });
 
   useEffect(() => {
@@ -85,6 +87,7 @@ export default function PropriedadePage() {
         setFormData({
           nomeRebanho: "",
           tipo: "",
+          raca: "",
         });
         setShowForm(false);
         alert("Rebanho cadastrado com sucesso!");
@@ -95,6 +98,74 @@ export default function PropriedadePage() {
     } catch (error) {
       console.error("Erro ao cadastrar rebanho:", error);
       alert("Erro ao cadastrar rebanho");
+    }
+  };
+
+  const handleDeleteRebanho = async (rebanhoId) => {
+    if (
+      !confirm(
+        "Tem certeza que deseja excluir este rebanho? Ele será movido para a aba Excluídos."
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `/api/propriedades/${id}/rebanhos/${rebanhoId}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        }
+      );
+
+      if (response.ok) {
+        // Atualizar o rebanho na lista com deletedAt
+        setRebanhos(
+          rebanhos.map((r) =>
+            r.id === rebanhoId ? { ...r, deletedAt: new Date() } : r
+          )
+        );
+        alert("Rebanho excluído com sucesso!");
+      } else {
+        const error = await response.json();
+        alert(`Erro ao excluir rebanho: ${error.error}`);
+      }
+    } catch (error) {
+      console.error("Erro ao excluir rebanho:", error);
+      alert("Erro ao excluir rebanho");
+    }
+  };
+
+  const handleRestoreRebanho = async (rebanhoId) => {
+    if (!confirm("Tem certeza que deseja restaurar este rebanho?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `/api/propriedades/${id}/rebanhos/${rebanhoId}/restore`,
+        {
+          method: "PUT",
+          credentials: "include",
+        }
+      );
+
+      if (response.ok) {
+        // Atualizar o rebanho na lista removendo deletedAt
+        setRebanhos(
+          rebanhos.map((r) =>
+            r.id === rebanhoId ? { ...r, deletedAt: null } : r
+          )
+        );
+        alert("Rebanho restaurado com sucesso!");
+      } else {
+        const error = await response.json();
+        alert(`Erro ao restaurar rebanho: ${error.error}`);
+      }
+    } catch (error) {
+      console.error("Erro ao restaurar rebanho:", error);
+      alert("Erro ao restaurar rebanho");
     }
   };
 
@@ -209,6 +280,42 @@ export default function PropriedadePage() {
                     <option value="Equino">Equino</option>
                   </select>
                 </div>
+                {formData.tipo === "Caprino" && (
+                  <div>
+                    <label className="block text-gray-700 mb-2">
+                      Raça <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={formData.raca}
+                      onChange={(e) =>
+                        setFormData({ ...formData, raca: e.target.value })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                      required
+                    >
+                      <option value="">Selecione a raça</option>
+                      <option value="Moxotó (nativa)">Moxotó (nativa)</option>
+                      <option value="Repartida ou Surrão (nativa)">
+                        Repartida ou Surrão (nativa)
+                      </option>
+                      <option value="Marota ou Curaça (nativa)">
+                        Marota ou Curaça (nativa)
+                      </option>
+                      <option value="Canindé (nativa)">Canindé (nativa)</option>
+                      <option value="Sem raça definida (SRD)">
+                        Sem raça definida (SRD)
+                      </option>
+                      <option value="Boer (exótica)">Boer (exótica)</option>
+                      <option value="Anglo-nubiana (exótica)">
+                        Anglo-nubiana (exótica)
+                      </option>
+                      <option value="Saanen (exótica)">Saanen (exótica)</option>
+                      <option value="Parda-alpina (exótica)">
+                        Parda-alpina (exótica)
+                      </option>
+                    </select>
+                  </div>
+                )}
                 <Button
                   type="submit"
                   className="w-full bg-green-600 text-white py-2 px-4 rounded-md font-semibold hover:bg-green-700 transition"
@@ -224,28 +331,84 @@ export default function PropriedadePage() {
               Nenhum rebanho cadastrado ainda.
             </p>
           ) : (
-            <div className="space-y-4">
-              {rebanhos.map((rebanho) => (
-                <div
-                  key={rebanho.id}
-                  className="border border-gray-200 p-4 rounded-lg"
+            <>
+              {/* Abas */}
+              <div className="flex space-x-4 mb-4">
+                <button
+                  onClick={() => setActiveTab("ativos")}
+                  className={`px-4 py-2 rounded ${
+                    activeTab === "ativos"
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-200 text-gray-700"
+                  }`}
                 >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="text-lg font-medium">
-                        {rebanho.nomeRebanho}
-                      </h3>
-                      <p className="text-gray-600">Tipo: {rebanho.tipo}</p>
+                  Ativos ({rebanhos.filter((r) => !r.deletedAt).length})
+                </button>
+                <button
+                  onClick={() => setActiveTab("excluidos")}
+                  className={`px-4 py-2 rounded ${
+                    activeTab === "excluidos"
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-200 text-gray-700"
+                  }`}
+                >
+                  Excluídos ({rebanhos.filter((r) => r.deletedAt).length})
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {rebanhos
+                  .filter((rebanho) =>
+                    activeTab === "ativos"
+                      ? !rebanho.deletedAt
+                      : rebanho.deletedAt
+                  )
+                  .map((rebanho) => (
+                    <div
+                      key={rebanho.id}
+                      className="border border-gray-200 p-4 rounded-lg"
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="text-lg font-medium">
+                            {rebanho.nomeRebanho}
+                          </h3>
+                          <p className="text-gray-600">Tipo: {rebanho.tipo}</p>
+                          {rebanho.raca && (
+                            <p className="text-gray-600">
+                              Raça: {rebanho.raca}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex space-x-2">
+                          <Link
+                            href={`/propriedades/${id}/rebanhos/${rebanho.id}`}
+                          >
+                            <Button className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition">
+                              Gerenciar Animais
+                            </Button>
+                          </Link>
+                          {activeTab === "ativos" ? (
+                            <Button
+                              onClick={() => handleDeleteRebanho(rebanho.id)}
+                              className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition"
+                            >
+                              Excluir Rebanho
+                            </Button>
+                          ) : (
+                            <Button
+                              onClick={() => handleRestoreRebanho(rebanho.id)}
+                              className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 transition"
+                            >
+                              Restaurar Rebanho
+                            </Button>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <Link href={`/propriedades/${id}/rebanhos/${rebanho.id}`}>
-                      <Button className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition">
-                        Gerenciar Animais
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  ))}
+              </div>
+            </>
           )}
         </div>
       </div>
