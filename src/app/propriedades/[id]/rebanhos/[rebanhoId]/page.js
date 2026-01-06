@@ -130,6 +130,21 @@ export default function RebanhoPage() {
     }
   }, [propriedadeId, rebanhoId, router]);
 
+  // Definir raça automaticamente baseada no rebanho
+  useEffect(() => {
+    if (rebanho?.raca && rebanho.raca !== "Rebanho misto" && !editingId) {
+      setFormData((prev) => ({
+        ...prev,
+        raca: rebanho.raca,
+      }));
+    } else if (rebanho?.raca === "Rebanho misto" && !editingId) {
+      setFormData((prev) => ({
+        ...prev,
+        raca: "",
+      }));
+    }
+  }, [rebanho?.raca, editingId]);
+
   // Buscar animais quando a aba muda
   useEffect(() => {
     if (propriedadeId && rebanhoId) {
@@ -200,7 +215,10 @@ export default function RebanhoPage() {
     setFormData({
       numeroIdentificacao: animal.numeroIdentificacao || "",
       nome: animal.nome || "",
-      raca: animal.raca || "",
+      raca:
+        rebanho?.raca === "Rebanho misto"
+          ? animal.raca || ""
+          : animal.raca || rebanho?.raca || "",
       dataNascimento: animal.dataNascimento
         ? new Date(animal.dataNascimento).toISOString().split("T")[0]
         : "",
@@ -216,7 +234,8 @@ export default function RebanhoPage() {
     setFormData({
       numeroIdentificacao: "",
       nome: "",
-      raca: "",
+      raca:
+        rebanho?.raca && rebanho.raca !== "Rebanho misto" ? rebanho.raca : "",
       dataNascimento: "",
       sexo: "",
       pesoAoNascer: "",
@@ -534,39 +553,58 @@ export default function RebanhoPage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>
-                <div>
-                  <label className="block text-gray-700 mb-2">Raça</label>
-                  {rebanho?.tipo?.toLowerCase() === "caprino" ? (
-                    <select
-                      value={formData.raca}
-                      onChange={(e) =>
-                        setFormData({ ...formData, raca: e.target.value })
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                    >
-                      <option value="">Selecione a raça</option>
-                      <option value="Moxotó (nativa)">Moxotó (nativa)</option>
-                      <option value="Repartida ou Surrão (nativa)">Repartida ou Surrão (nativa)</option>
-                      <option value="Marota ou Curaça (nativa)">Marota ou Curaça (nativa)</option>
-                      <option value="Canindé (nativa)">Canindé (nativa)</option>
-                      <option value="Sem raça definida (SRD)">Sem raça definida (SRD)</option>
-                      <option value="Boer (exótica)">Boer (exótica)</option>
-                      <option value="Anglo-nubiana (exótica)">Anglo-nubiana (exótica)</option>
-                      <option value="Saanen (exótica)">Saanen (exótica)</option>
-                      <option value="Parda-alpina (exótica)">Parda-alpina (exótica)</option>
-                    </select>
-                  ) : (
-                    <input
-                      type="text"
-                      value={formData.raca}
-                      onChange={(e) =>
-                        setFormData({ ...formData, raca: e.target.value })
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                      placeholder="Ex: Nelore, Angus"
-                    />
-                  )}
-                </div>
+                {rebanho?.tipo?.toLowerCase() === "caprino" && (
+                  <div>
+                    <label className="block text-gray-700 mb-2">
+                      Raça{" "}
+                      {rebanho?.raca === "Rebanho misto" && (
+                        <span className="text-red-500">*</span>
+                      )}
+                    </label>
+                    {rebanho?.raca === "Rebanho misto" ? (
+                      <select
+                        value={formData.raca}
+                        onChange={(e) =>
+                          setFormData({ ...formData, raca: e.target.value })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                        required
+                      >
+                        <option value="">Selecione a raça</option>
+                        <option value="Moxotó (nativa)">Moxotó (nativa)</option>
+                        <option value="Repartida ou Surrão (nativa)">
+                          Repartida ou Surrão (nativa)
+                        </option>
+                        <option value="Marota ou Curaça (nativa)">
+                          Marota ou Curaça (nativa)
+                        </option>
+                        <option value="Canindé (nativa)">
+                          Canindé (nativa)
+                        </option>
+                        <option value="Sem raça definida (SRD)">
+                          Sem raça definida (SRD)
+                        </option>
+                        <option value="Boer (exótica)">Boer (exótica)</option>
+                        <option value="Anglo-nubiana (exótica)">
+                          Anglo-nubiana (exótica)
+                        </option>
+                        <option value="Saanen (exótica)">
+                          Saanen (exótica)
+                        </option>
+                        <option value="Parda-alpina (exótica)">
+                          Parda-alpina (exótica)
+                        </option>
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        value={formData.raca}
+                        readOnly
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+                      />
+                    )}
+                  </div>
+                )}
                 <div>
                   <label className="block text-gray-700 mb-2">
                     Data de Nascimento

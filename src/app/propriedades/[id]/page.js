@@ -342,6 +342,7 @@ export default function PropriedadePage() {
                       <option value="Parda-alpina (exótica)">
                         Parda-alpina (exótica)
                       </option>
+                      <option value="Rebanho misto">Rebanho misto</option>
                     </select>
                   </div>
                 )}
