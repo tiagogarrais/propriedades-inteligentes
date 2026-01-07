@@ -138,14 +138,35 @@ model Animal {
 }
 
 model RacaCaracteristicas {
-  id                String  @id @default(uuid())
-  tipo              String  // Tipo do animal (Caprino, etc.)
-  raca              String  // Nome da raça
-  origem            String? // Origem da raça
-  pesoNascer        Float?  // Peso médio ao nascer em kg
-  peso10Meses       Float?  // Peso médio aos 10 meses em kg
-  pesoMachoAdulto   Float?  // Peso médio do macho adulto em kg
-  pesoFemeaAdulta   Float?  // Peso médio da fêmea adulta em kg
+  id                        String  @id @default(uuid())
+  tipo                      String  // Tipo do animal (Caprino, etc.)
+  raca                      String  // Nome da raça
+  origem                    String? // Origem da raça
+  pesoNascer                Float?  // Peso médio ao nascer em kg
+  peso10Meses               Float?  // Peso médio aos 10 meses em kg
+  pesoMachoAdulto           Float?  // Peso médio do macho adulto em kg
+  pesoFemeaAdulta           Float?  // Peso médio da fêmea adulta em kg
+  
+  // Novos campos para informações detalhadas da raça
+  maturidadeSexual          Int?    // Maturidade sexual em meses
+  femeaTemLeite             Boolean @default(true) // Se a fêmea possui leite suficiente para alimentar cria
+  periodoGestacao           Int?    // Período de gestação em dias
+  quantidadeCabritosParto   Float?  // Quantidade média de cabritos por parto
+  abatePrecoceDias          Int?    // Dias para abate precoce (carne premium)
+  abateConvencionalDias     Int?    // Dias para abate convencional
+  abateTardioDiasMin        Int?    // Dias mínimos para abate tardio
+  abateTardioDiasMax        Int?    // Dias máximos para abate tardio
+  pelagemCouro              String? // Tipo de pelagem do couro (curto, longo, etc.)
+  maxFemeasPorMacho         Int?    // Máximo de fêmeas por macho
+  femeasPorMachoIdeal       Int?    // Número ideal de fêmeas por macho
+  ganhoPesoDiaGramas        Float?  // Ganho aproximado de peso por dia em gramas
+  percentualGorduraCarne    String? // Percentual de gordura da carne
+  indiceColesterol          String? // Índice de colesterol (baixo, médio, alto)
+  indiceGorduraSaturada     String? // Índice de gordura saturada
+  indiceCalorias            String? // Índice de calorias
+  carneMacia                Boolean @default(true) // Se a carne é macia
+  carneSaborosa             Boolean @default(true) // Se a carne é saborosa
+  carneSucculenta           Boolean @default(true) // Se a carne é suculenta
 
   @@unique([tipo, raca])
 }
