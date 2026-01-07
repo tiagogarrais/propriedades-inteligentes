@@ -20,8 +20,17 @@ export async function GET(request) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
+    // Obter parâmetros da query
+    const { searchParams } = new URL(request.url);
+    const status = searchParams.get("status") || "ativas"; // 'ativas' ou 'excluidas'
+
     const propriedades = await prisma.propriedade.findMany({
-      where: { proprietarioId: userId },
+      where: {
+        proprietarioId: userId,
+        ...(status === "ativas"
+          ? { deletedAt: null }
+          : { deletedAt: { not: null } }),
+      },
       orderBy: { createdAt: "desc" },
     });
 

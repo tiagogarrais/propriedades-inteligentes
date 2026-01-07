@@ -96,6 +96,7 @@ model Propriedade {
   proprietarioId String // ID do proprietário (User)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  deletedAt   DateTime? // Soft delete
 
   proprietario User @relation(fields: [proprietarioId], references: [id], onDelete: Cascade)
   rebanhos     Rebanho[]

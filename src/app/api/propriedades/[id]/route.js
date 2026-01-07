@@ -74,6 +74,7 @@ export async function PUT(request, { params }) {
       cidade,
       latitude,
       longitude,
+      deletedAt,
       sessionToken,
     } = body;
 
@@ -128,6 +129,7 @@ export async function PUT(request, { params }) {
         cidade: cidade || null,
         latitude: latitude ? parseFloat(latitude) : null,
         longitude: longitude ? parseFloat(longitude) : null,
+        deletedAt: deletedAt || null,
         updatedAt: new Date(),
       },
     });
@@ -135,6 +137,63 @@ export async function PUT(request, { params }) {
     return NextResponse.json(propriedadeAtualizada);
   } catch (error) {
     console.error("Erro ao atualizar propriedade:", error);
+    return NextResponse.json(
+      { error: "Erro interno do servidor" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request, { params }) {
+  try {
+    const session = await getServerSession(authOptions);
+    let userId = session?.user?.id;
+
+    const { id } = await params;
+
+    // Se não conseguiu userId via session.user.id, tentar buscar pelo email
+    if (!userId && session?.user?.email) {
+      const user = await prisma.user.findUnique({
+        where: { email: session.user.email },
+      });
+      userId = user?.id;
+    }
+
+    if (!userId) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
+    // Verificar se a propriedade existe e pertence ao usuário
+    const propriedadeExistente = await prisma.propriedade.findFirst({
+      where: {
+        id: id,
+        proprietarioId: userId,
+        deletedAt: null, // Só pode excluir propriedades ativas
+      },
+    });
+
+    if (!propriedadeExistente) {
+      return NextResponse.json(
+        { error: "Propriedade não encontrada ou não autorizada" },
+        { status: 404 }
+      );
+    }
+
+    // Soft delete da propriedade
+    const propriedadeExcluida = await prisma.propriedade.update({
+      where: { id: id },
+      data: {
+        deletedAt: new Date(),
+        updatedAt: new Date(),
+      },
+    });
+
+    return NextResponse.json({
+      message: "Propriedade excluída com sucesso",
+      propriedade: propriedadeExcluida,
+    });
+  } catch (error) {
+    console.error("Erro ao excluir propriedade:", error);
     return NextResponse.json(
       { error: "Erro interno do servidor" },
       { status: 500 }
