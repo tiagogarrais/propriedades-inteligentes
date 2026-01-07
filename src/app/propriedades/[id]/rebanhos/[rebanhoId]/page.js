@@ -20,6 +20,12 @@ export default function RebanhoPage() {
   const [animaisVendidosCount, setAnimaisVendidosCount] = useState(0);
   const [animaisExcluidosCount, setAnimaisExcluidosCount] = useState(0);
   const [numeroIdentificacaoError, setNumeroIdentificacaoError] = useState("");
+  const [pesosHistoricos, setPesosHistoricos] = useState([]);
+  const [novoPeso, setNovoPeso] = useState({
+    peso: "",
+    dataPeso: "",
+    observacao: "",
+  });
   const [formData, setFormData] = useState({
     numeroIdentificacao: "",
     nome: "",
@@ -27,7 +33,6 @@ export default function RebanhoPage() {
     dataNascimento: "",
     sexo: "",
     pesoAoNascer: "",
-    pesoAtual: "",
   });
 
   useEffect(() => {
@@ -163,7 +168,33 @@ export default function RebanhoPage() {
       return;
     }
 
+    // Validar campos obrigatórios
+    if (
+      !formData.numeroIdentificacao ||
+      !formData.raca ||
+      !formData.dataNascimento ||
+      !formData.sexo ||
+      !formData.pesoAoNascer
+    ) {
+      alert("Preencha todos os campos obrigatórios.");
+      return;
+    }
+
     try {
+      // Construir pesos históricos: peso ao nascer + pesos adicionais
+      const pesosHistoricosCompletos = [
+        {
+          peso: parseFloat(formData.pesoAoNascer),
+          dataPeso: formData.dataNascimento,
+          observacao: "Peso ao nascer",
+        },
+        ...pesosHistoricos.map((p) => ({
+          peso: parseFloat(p.peso),
+          dataPeso: p.data,
+          observacao: "",
+        })),
+      ];
+
       const method = editingId ? "PUT" : "POST";
       const url = editingId
         ? `/api/propriedades/${propriedadeId}/rebanhos/${rebanhoId}/animais/${editingId}`
@@ -175,7 +206,14 @@ export default function RebanhoPage() {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          numeroIdentificacao: formData.numeroIdentificacao,
+          nome: formData.nome,
+          raca: formData.raca,
+          dataNascimento: formData.dataNascimento,
+          sexo: formData.sexo,
+          pesosHistoricos: pesosHistoricosCompletos,
+        }),
       });
 
       if (response.ok) {
@@ -212,6 +250,14 @@ export default function RebanhoPage() {
   };
 
   const handleEdit = (animal) => {
+    // Encontrar o peso ao nascer (primeiro peso histórico)
+    const pesoAoNascer =
+      animal.pesosHistoricos && animal.pesosHistoricos.length > 0
+        ? animal.pesosHistoricos.sort(
+            (a, b) => new Date(a.dataPeso) - new Date(b.dataPeso)
+          )[0].peso
+        : "";
+
     setFormData({
       numeroIdentificacao: animal.numeroIdentificacao || "",
       nome: animal.nome || "",
@@ -223,9 +269,17 @@ export default function RebanhoPage() {
         ? new Date(animal.dataNascimento).toISOString().split("T")[0]
         : "",
       sexo: animal.sexo || "",
-      pesoAoNascer: animal.pesoAoNascer ? animal.pesoAoNascer.toString() : "",
-      pesoAtual: animal.pesoAtual ? animal.pesoAtual.toString() : "",
+      pesoAoNascer: pesoAoNascer,
     });
+    // Carregar pesos históricos adicionais (excluindo o peso ao nascer)
+    const pesosAdicionais =
+      animal.pesosHistoricos && animal.pesosHistoricos.length > 1
+        ? animal.pesosHistoricos
+            .sort((a, b) => new Date(a.dataPeso) - new Date(b.dataPeso))
+            .slice(1)
+            .map((p) => ({ data: p.dataPeso.split("T")[0], peso: p.peso }))
+        : [];
+    setPesosHistoricos(pesosAdicionais);
     setEditingId(animal.id);
     setShowForm(true);
   };
@@ -239,11 +293,27 @@ export default function RebanhoPage() {
       dataNascimento: "",
       sexo: "",
       pesoAoNascer: "",
-      pesoAtual: "",
     });
+    setPesosHistoricos([]);
+    setNovoPeso({ peso: "", dataPeso: "", observacao: "" });
     setEditingId(null);
     setShowForm(false);
     setNumeroIdentificacaoError("");
+  };
+
+  // Funções para gerenciar pesos históricos
+  const adicionarPesoHistorico = () => {
+    setPesosHistoricos([...pesosHistoricos, { data: "", peso: "" }]);
+  };
+
+  const atualizarPesoHistorico = (index, campo, valor) => {
+    const novosPesos = [...pesosHistoricos];
+    novosPesos[index][campo] = valor;
+    setPesosHistoricos(novosPesos);
+  };
+
+  const removerPesoHistorico = (index) => {
+    setPesosHistoricos(pesosHistoricos.filter((_, i) => i !== index));
   };
 
   const verificarNumeroIdentificacaoUnico = async (numero) => {
@@ -622,13 +692,16 @@ export default function RebanhoPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-700 mb-2">Sexo</label>
+                  <label className="block text-gray-700 mb-2">
+                    Sexo <span className="text-red-500">*</span>
+                  </label>
                   <select
                     value={formData.sexo}
                     onChange={(e) =>
                       setFormData({ ...formData, sexo: e.target.value })
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    required
                   >
                     <option value="">Selecione</option>
                     <option value="Macho">Macho</option>
@@ -637,35 +710,108 @@ export default function RebanhoPage() {
                 </div>
                 <div>
                   <label className="block text-gray-700 mb-2">
-                    Peso ao Nascer (kg)
+                    Peso ao nascer (kg) <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="number"
                     step="0.1"
+                    min="0.1"
+                    max="200"
                     value={formData.pesoAoNascer}
                     onChange={(e) =>
                       setFormData({ ...formData, pesoAoNascer: e.target.value })
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="Ex: 25.5"
-                  />
-                </div>
-                <div>
-                  <label className="block text-gray-700 mb-2">
-                    Peso Atual (kg)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={formData.pesoAtual}
-                    onChange={(e) =>
-                      setFormData({ ...formData, pesoAtual: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="Ex: 450.5"
+                    placeholder="Ex: 2.5"
+                    required
                   />
                 </div>
               </div>
+
+              {/* Histórico de Pesos Adicionais */}
+              <div className="mt-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-800">
+                    📊 Pesos Adicionais
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={adicionarPesoHistorico}
+                    className="bg-blue-600 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-700 transition"
+                  >
+                    ➕ Adicionar Peso
+                  </button>
+                </div>
+
+                {pesosHistoricos.length > 0 && (
+                  <div className="space-y-3">
+                    {pesosHistoricos.map((peso, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-md"
+                      >
+                        <div className="flex-1">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Data
+                          </label>
+                          <input
+                            type="date"
+                            value={peso.data}
+                            onChange={(e) =>
+                              atualizarPesoHistorico(
+                                index,
+                                "data",
+                                e.target.value
+                              )
+                            }
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                            min={formData.dataNascimento || undefined}
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Peso (kg)
+                          </label>
+                          <input
+                            type="number"
+                            step="0.1"
+                            min="0.1"
+                            max="200"
+                            value={peso.peso}
+                            onChange={(e) =>
+                              atualizarPesoHistorico(
+                                index,
+                                "peso",
+                                e.target.value
+                              )
+                            }
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                            placeholder="Ex: 35.5"
+                          />
+                        </div>
+                        <div className="flex items-end">
+                          <button
+                            type="button"
+                            onClick={() => removerPesoHistorico(index)}
+                            className="text-red-600 hover:text-red-800 p-2"
+                            title="Remover peso"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {pesosHistoricos.length === 0 && (
+                  <p className="text-gray-500 text-sm text-center py-4">
+                    Nenhum peso adicional registrado. Clique em "Adicionar Peso"
+                    para incluir mais registros.
+                  </p>
+                )}
+              </div>
+
               <div className="mt-4">
                 <Button
                   type="submit"
@@ -764,17 +910,38 @@ export default function RebanhoPage() {
                         <strong>Sexo:</strong> {animal.sexo}
                       </p>
                     )}
-                    {animal.pesoAoNascer && (
-                      <p>
-                        <strong>Peso ao Nascer:</strong> {animal.pesoAoNascer}{" "}
-                        kg
-                      </p>
-                    )}
-                    {animal.pesoAtual && (
-                      <p>
-                        <strong>Peso Atual:</strong> {animal.pesoAtual} kg
-                      </p>
-                    )}
+                    {animal.pesosHistoricos &&
+                      animal.pesosHistoricos.length > 0 &&
+                      (() => {
+                        const primeiroPeso = animal.pesosHistoricos.sort(
+                          (a, b) => new Date(a.dataPeso) - new Date(b.dataPeso)
+                        )[0];
+                        return (
+                          <p>
+                            <strong>Peso ao Nascer:</strong> {primeiroPeso.peso}{" "}
+                            kg
+                          </p>
+                        );
+                      })()}
+                    {animal.pesosHistoricos &&
+                      animal.pesosHistoricos.length > 0 &&
+                      (() => {
+                        const ultimoPeso = animal.pesosHistoricos.sort(
+                          (a, b) => new Date(b.dataPeso) - new Date(a.dataPeso)
+                        )[0];
+                        return (
+                          <p>
+                            <strong>Último Peso:</strong> {ultimoPeso.peso} kg
+                            <span className="text-xs text-gray-500 ml-1">
+                              (
+                              {new Date(ultimoPeso.dataPeso).toLocaleDateString(
+                                "pt-BR"
+                              )}
+                              )
+                            </span>
+                          </p>
+                        );
+                      })()}
                     {activeTab === "vendidos" && animal.emailComprador && (
                       <p>
                         <strong>Comprador:</strong> {animal.emailComprador}

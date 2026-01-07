@@ -139,15 +139,28 @@ export default function AnimalDetailsPage() {
     return Math.floor((hoje - nascimento) / (1000 * 60 * 60 * 24));
   };
 
+  // Função para obter o peso atual (mais recente dos pesos históricos)
+  const getPesoAtual = () => {
+    if (!animal?.pesosHistoricos || animal.pesosHistoricos.length === 0) {
+      return null;
+    }
+
+    // Retorna o peso mais recente
+    const pesosOrdenados = animal.pesosHistoricos.sort(
+      (a, b) => new Date(b.dataPeso) - new Date(a.dataPeso)
+    );
+    return pesosOrdenados[0].peso;
+  };
+
   // Função para analisar desenvolvimento do animal
   const analisarDesenvolvimento = () => {
-    if (!animal?.dataNascimento || !animal?.pesoAtual || !racaCaracteristicas) {
+    const pesoAtual = getPesoAtual();
+    if (!animal?.dataNascimento || !pesoAtual || !racaCaracteristicas) {
       return null;
     }
 
     const idadeMeses = calcularIdadeEmMeses(animal.dataNascimento);
     const idadeDias = calcularIdadeEmDias(animal.dataNascimento);
-    const pesoAtual = animal.pesoAtual;
 
     let pesoEsperado = 0;
     let statusDesenvolvimento = "";
@@ -403,17 +416,18 @@ export default function AnimalDetailsPage() {
     if (!animal || !racaCaracteristicas) return null;
 
     const comparacoes = [];
+    const primeiroPeso = animal.pesosHistoricos?.[0];
 
     // Comparação peso ao nascer
-    if (animal.pesoAoNascer && racaCaracteristicas.pesoNascer) {
-      const diff = animal.pesoAoNascer - racaCaracteristicas.pesoNascer;
+    if (primeiroPeso && racaCaracteristicas.pesoNascer) {
+      const diff = primeiroPeso.peso - racaCaracteristicas.pesoNascer;
       const percentual = (
-        (animal.pesoAoNascer / racaCaracteristicas.pesoNascer) *
+        (primeiroPeso.peso / racaCaracteristicas.pesoNascer) *
         100
       ).toFixed(0);
       comparacoes.push({
         titulo: "Peso ao Nascer",
-        valorAnimal: `${animal.pesoAoNascer} kg`,
+        valorAnimal: `${primeiroPeso.peso} kg`,
         valorPadrao: `${racaCaracteristicas.pesoNascer} kg`,
         diferenca: diff.toFixed(2),
         percentual,
@@ -449,14 +463,14 @@ export default function AnimalDetailsPage() {
 
     // Comparação ganho de peso diário
     if (
-      animal.pesoAoNascer &&
+      primeiroPeso &&
       animal.pesoAtual &&
       animal.dataNascimento &&
       racaCaracteristicas.ganhoPesoDiaGramas
     ) {
       const idadeDias = calcularIdadeEmDias(animal.dataNascimento);
       if (idadeDias > 0) {
-        const ganhoTotal = animal.pesoAtual - animal.pesoAoNascer;
+        const ganhoTotal = animal.pesoAtual - primeiroPeso.peso;
         const ganhoDiaReal = (ganhoTotal * 1000) / idadeDias; // em gramas
         const ganhoPadrao = racaCaracteristicas.ganhoPesoDiaGramas;
         const percentual = ((ganhoDiaReal / ganhoPadrao) * 100).toFixed(0);
@@ -488,13 +502,36 @@ export default function AnimalDetailsPage() {
     }
 
     const idadeAtualMeses = calcularIdadeEmMeses(animal.dataNascimento);
-    const pesoAtual = animal.pesoAtual;
+    const pesoAtual = getPesoAtual();
 
     // Gerar pontos da curva esperada (até 24 meses)
     const pontosEsperados = [];
     const labels = [];
     const pesosEsperados = [];
     const pesosAtuais = [];
+    const pesosHistoricos = []; // Nova array para pesos históricos
+
+    // Arrays para as faixas de desenvolvimento (faixas verticais mais amplas)
+    const faixaCrescimento = [];
+    const faixaMaturidade = [];
+    const faixaAbatePrecoce = [];
+    const faixaAbateConvencional = [];
+    const faixaAbateTardio = [];
+
+    // Calcular limites das faixas em meses
+    const maturidadeMeses = racaCaracteristicas.maturidadeSexual || 0;
+    const abatePrecoceMeses = racaCaracteristicas.abatePrecoceDias
+      ? racaCaracteristicas.abatePrecoceDias / 30
+      : 0;
+    const abateConvencionalMeses = racaCaracteristicas.abateConvencionalDias
+      ? racaCaracteristicas.abateConvencionalDias / 30
+      : 0;
+    const abateTardioMinMeses = racaCaracteristicas.abateTardioDiasMin
+      ? racaCaracteristicas.abateTardioDiasMin / 30
+      : 0;
+    const abateTardioMaxMeses = racaCaracteristicas.abateTardioDiasMax
+      ? racaCaracteristicas.abateTardioDiasMax / 30
+      : 0;
 
     for (let mes = 0; mes <= 24; mes++) {
       labels.push(`${mes}m`);
@@ -536,30 +573,202 @@ export default function AnimalDetailsPage() {
       } else {
         pesosAtuais.push(null); // null para não mostrar ponto
       }
+
+      // Histórico de pesos do animal
+      let pesoHistoricoMes = null;
+
+      // Primeiro, tentar encontrar pesos históricos próximos desta idade
+      if (animal.pesosHistoricos && animal.pesosHistoricos.length > 0) {
+        // Calcular a idade em meses para cada peso histórico
+        const pesosComIdade = animal.pesosHistoricos.map((p) => ({
+          ...p,
+          idadeMeses: Math.floor(
+            (new Date(p.dataPeso) - new Date(animal.dataNascimento)) /
+              (1000 * 60 * 60 * 24 * 30)
+          ),
+        }));
+
+        // Encontrar o peso mais próximo desta idade
+        const pesoMaisProximo = pesosComIdade
+          .filter((p) => Math.abs(p.idadeMeses - mes) <= 1) // Dentro de 1 mês de diferença
+          .sort(
+            (a, b) =>
+              Math.abs(a.idadeMeses - mes) - Math.abs(b.idadeMeses - mes)
+          )[0];
+
+        if (pesoMaisProximo) {
+          pesoHistoricoMes = pesoMaisProximo.peso;
+        }
+      }
+
+      // Se não encontrou histórico, usar dados básicos disponíveis
+      if (pesoHistoricoMes === null) {
+        const primeiroPeso = animal.pesosHistoricos?.[0];
+        if (mes === 0 && primeiroPeso) {
+          // Peso ao nascer no mês 0
+          pesoHistoricoMes = primeiroPeso.peso;
+        } else if (mes === Math.round(idadeAtualMeses) && pesoAtual) {
+          // Peso atual no mês arredondado da idade atual
+          pesoHistoricoMes = pesoAtual;
+        } else if (
+          mes === Math.max(0, Math.round(idadeAtualMeses) - 1) &&
+          pesoAtual &&
+          !pesosHistoricos[Math.round(idadeAtualMeses)]
+        ) {
+          // Backup: usar peso atual um mês antes se não conseguiu no mês exato
+          pesoHistoricoMes = pesoAtual;
+        }
+      }
+
+      pesosHistoricos.push(pesoHistoricoMes);
+
+      // Definir faixas de desenvolvimento (faixas verticais mais amplas)
+      const pesoMaxGrafico =
+        Math.max(
+          racaCaracteristicas.pesoFemeaAdulta || 0,
+          racaCaracteristicas.pesoMachoAdulto || 0,
+          pesoEsperadoMes * 1.5
+        ) || 50;
+
+      // Faixa de crescimento inicial (0-3 meses) - verde claro (faixa vertical)
+      faixaCrescimento.push(mes >= 0 && mes <= 3 ? pesoMaxGrafico : null);
+
+      // Faixa de maturidade sexual (janela de +/- 1 mês) - rosa claro
+      faixaMaturidade.push(
+        maturidadeMeses > 0 &&
+          mes >= maturidadeMeses - 1 &&
+          mes <= maturidadeMeses + 1
+          ? pesoMaxGrafico
+          : null
+      );
+
+      // Faixa de abate precoce (janela de +/- 15 dias = ~0.5 meses) - amarelo claro
+      faixaAbatePrecoce.push(
+        abatePrecoceMeses > 0 &&
+          mes >= abatePrecoceMeses - 0.5 &&
+          mes <= abatePrecoceMeses + 0.5
+          ? pesoMaxGrafico
+          : null
+      );
+
+      // Faixa de abate convencional (janela de +/- 1 mês) - azul claro
+      faixaAbateConvencional.push(
+        abateConvencionalMeses > 0 &&
+          mes >= abateConvencionalMeses - 1 &&
+          mes <= abateConvencionalMeses + 1
+          ? pesoMaxGrafico
+          : null
+      );
+
+      // Faixa de abate tardio (intervalo completo) - vermelho claro
+      faixaAbateTardio.push(
+        abateTardioMinMeses > 0 &&
+          abateTardioMaxMeses > 0 &&
+          mes >= abateTardioMinMeses &&
+          mes <= abateTardioMaxMeses
+          ? pesoMaxGrafico
+          : null
+      );
     }
 
     return {
       labels,
       datasets: [
+        // Faixas de fundo (devem vir primeiro para ficar atrás)
+        {
+          label: "Crescimento Inicial (0-3m)",
+          data: faixaCrescimento,
+          backgroundColor: "rgba(34, 197, 94, 0.1)", // green-500 com baixa opacidade
+          borderColor: "rgba(34, 197, 94, 0.3)",
+          borderWidth: 0,
+          fill: true,
+          pointRadius: 0,
+          showLine: false,
+          order: 5,
+        },
+        {
+          label: "Maturidade Sexual",
+          data: faixaMaturidade,
+          backgroundColor: "rgba(236, 72, 153, 0.1)", // pink-500
+          borderColor: "rgba(236, 72, 153, 0.3)",
+          borderWidth: 0,
+          fill: true,
+          pointRadius: 0,
+          showLine: false,
+          order: 4,
+        },
+        {
+          label: "Abate Precoce (Premium)",
+          data: faixaAbatePrecoce,
+          backgroundColor: "rgba(245, 158, 11, 0.1)", // amber-500
+          borderColor: "rgba(245, 158, 11, 0.3)",
+          borderWidth: 0,
+          fill: true,
+          pointRadius: 0,
+          showLine: false,
+          order: 3,
+        },
+        {
+          label: "Abate Convencional",
+          data: faixaAbateConvencional,
+          backgroundColor: "rgba(59, 130, 246, 0.1)", // blue-500
+          borderColor: "rgba(59, 130, 246, 0.3)",
+          borderWidth: 0,
+          fill: true,
+          pointRadius: 0,
+          showLine: false,
+          order: 2,
+        },
+        {
+          label: "Abate Tardio",
+          data: faixaAbateTardio,
+          backgroundColor: "rgba(239, 68, 68, 0.1)", // red-500
+          borderColor: "rgba(239, 68, 68, 0.3)",
+          borderWidth: 0,
+          fill: true,
+          pointRadius: 0,
+          showLine: false,
+          order: 1,
+        },
+        // Curva esperada (frente)
         {
           label: "Curva Esperada da Raça",
           data: pesosEsperados,
           borderColor: "rgb(59, 130, 246)", // blue-500
           backgroundColor: "rgba(59, 130, 246, 0.1)",
+          borderWidth: 3,
+          fill: false,
+          tension: 0.4,
+          pointRadius: 0,
+          order: 0,
+        },
+        // Curva histórica do animal (se houver dados)
+        {
+          label: "Evolução Real do Animal",
+          data: pesosHistoricos,
+          borderColor: "rgb(16, 185, 129)", // emerald-600
+          backgroundColor: "rgba(16, 185, 129, 0.1)",
           borderWidth: 2,
           fill: false,
           tension: 0.4,
+          pointRadius: 4,
+          pointBackgroundColor: "rgb(16, 185, 129)",
+          pointBorderColor: "white",
+          pointBorderWidth: 2,
+          order: -1,
         },
+        // Ponto atual (sempre na frente)
         {
           label: "Peso Atual do Animal",
           data: pesosAtuais,
           borderColor: "rgb(239, 68, 68)", // red-500
           backgroundColor: "rgb(239, 68, 68)",
           borderWidth: 3,
-          pointRadius: 6,
-          pointHoverRadius: 8,
+          pointRadius: 8,
+          pointHoverRadius: 10,
           fill: false,
           showLine: false, // Apenas pontos, não linha
+          order: -2,
         },
       ],
     };
@@ -661,16 +870,23 @@ export default function AnimalDetailsPage() {
                     </p>
                   </div>
                 )}
-                {animal.pesoAoNascer && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Peso ao Nascer
-                    </label>
-                    <p className="mt-1 text-sm text-gray-900">
-                      {animal.pesoAoNascer} kg
-                    </p>
-                  </div>
-                )}
+                {animal.pesosHistoricos &&
+                  animal.pesosHistoricos.length > 0 &&
+                  (() => {
+                    const primeiroPeso = animal.pesosHistoricos.sort(
+                      (a, b) => new Date(a.dataPeso) - new Date(b.dataPeso)
+                    )[0];
+                    return (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                          Peso ao Nascer
+                        </label>
+                        <p className="mt-1 text-sm text-gray-900">
+                          {primeiroPeso.peso} kg
+                        </p>
+                      </div>
+                    );
+                  })()}
                 {animal.pesoAtual && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
@@ -897,23 +1113,44 @@ export default function AnimalDetailsPage() {
                     <div className="text-sm text-gray-600">Dias de vida</div>
                   </div>
 
-                  {animal.pesoAoNascer && animal.pesoAtual && (
-                    <div className="bg-white border border-gray-200 p-4 rounded-lg text-center">
-                      <div className="text-3xl font-bold text-emerald-600">
-                        +{(animal.pesoAtual - animal.pesoAoNascer).toFixed(1)}kg
-                      </div>
-                      <div className="text-sm text-gray-600">Ganho total</div>
-                    </div>
-                  )}
+                  {animal.pesosHistoricos &&
+                    animal.pesosHistoricos.length > 0 &&
+                    animal.pesoAtual &&
+                    (() => {
+                      const primeiroPeso = animal.pesosHistoricos.sort(
+                        (a, b) => new Date(a.dataPeso) - new Date(b.dataPeso)
+                      )[0];
+                      return (
+                        <div className="bg-white border border-gray-200 p-4 rounded-lg text-center">
+                          <div className="text-3xl font-bold text-emerald-600">
+                            +{(animal.pesoAtual - primeiroPeso.peso).toFixed(1)}
+                            kg
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            Ganho total
+                          </div>
+                        </div>
+                      );
+                    })()}
 
-                  {animal.pesoAoNascer && animal.pesoAtual && (
-                    <div className="bg-white border border-gray-200 p-4 rounded-lg text-center">
-                      <div className="text-3xl font-bold text-indigo-600">
-                        {(animal.pesoAtual / animal.pesoAoNascer).toFixed(1)}x
-                      </div>
-                      <div className="text-sm text-gray-600">Multiplicador</div>
-                    </div>
-                  )}
+                  {animal.pesosHistoricos &&
+                    animal.pesosHistoricos.length > 0 &&
+                    animal.pesoAtual &&
+                    (() => {
+                      const primeiroPeso = animal.pesosHistoricos.sort(
+                        (a, b) => new Date(a.dataPeso) - new Date(b.dataPeso)
+                      )[0];
+                      return (
+                        <div className="bg-white border border-gray-200 p-4 rounded-lg text-center">
+                          <div className="text-3xl font-bold text-indigo-600">
+                            {(animal.pesoAtual / primeiroPeso.peso).toFixed(1)}x
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            Multiplicador
+                          </div>
+                        </div>
+                      );
+                    })()}
                 </div>
               </div>
             ) : null;
@@ -924,8 +1161,8 @@ export default function AnimalDetailsPage() {
             const dadosGrafico = gerarDadosGrafico();
             return dadosGrafico ? (
               <div className="mt-6">
-                <h2 className="text-lg font-semibold mb-4">
-                  Curva de Crescimento Peso-Idade
+                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  📈 Cronograma de Desenvolvimento Peso-Idade
                 </h2>
                 <div className="bg-white border border-gray-200 p-4 rounded-lg">
                   <div className="h-80">
@@ -936,21 +1173,95 @@ export default function AnimalDetailsPage() {
                         maintainAspectRatio: false,
                         plugins: {
                           legend: {
-                            position: "top",
+                            position: "bottom",
+                            labels: {
+                              usePointStyle: true,
+                              padding: 20,
+                              font: {
+                                size: 12,
+                              },
+                            },
                           },
                           title: {
                             display: true,
-                            text: `Desenvolvimento de Peso - ${animal.raca}`,
+                            text: `Linha do Tempo de Desenvolvimento - ${animal.raca} (${animal.sexo})`,
                             font: {
-                              size: 14,
+                              size: 16,
+                              weight: "bold",
+                            },
+                            padding: {
+                              top: 10,
+                              bottom: 20,
                             },
                           },
                           tooltip: {
                             callbacks: {
                               label: function (context) {
-                                return `${
-                                  context.dataset.label
-                                }: ${context.parsed.y?.toFixed(1)} kg`;
+                                if (
+                                  context.dataset.label.includes(
+                                    "Crescimento Inicial"
+                                  )
+                                ) {
+                                  return "🟢 Crescimento Inicial: Primeiros 3 meses - fase crítica de desenvolvimento";
+                                }
+                                if (
+                                  context.dataset.label.includes(
+                                    "Maturidade Sexual"
+                                  )
+                                ) {
+                                  return `🌸 Maturidade Sexual: Janela de ${Math.max(
+                                    0,
+                                    maturidadeMeses - 1
+                                  ).toFixed(1)}-${(maturidadeMeses + 1).toFixed(
+                                    1
+                                  )} meses`;
+                                }
+                                if (
+                                  context.dataset.label.includes(
+                                    "Abate Precoce"
+                                  )
+                                ) {
+                                  return `⭐ Abate Precoce: Janela de ${(
+                                    abatePrecoceMeses - 0.5
+                                  ).toFixed(1)}-${(
+                                    abatePrecoceMeses + 0.5
+                                  ).toFixed(1)} meses (carne premium)`;
+                                }
+                                if (
+                                  context.dataset.label.includes(
+                                    "Abate Convencional"
+                                  )
+                                ) {
+                                  return `🎯 Abate Convencional: Janela de ${(
+                                    abateConvencionalMeses - 1
+                                  ).toFixed(1)}-${(
+                                    abateConvencionalMeses + 1
+                                  ).toFixed(1)} meses`;
+                                }
+                                if (
+                                  context.dataset.label.includes("Abate Tardio")
+                                ) {
+                                  return `📅 Abate Tardio: Período de ${abateTardioMinMeses.toFixed(
+                                    1
+                                  )}-${abateTardioMaxMeses.toFixed(1)} meses`;
+                                }
+                                if (
+                                  context.dataset.label.includes(
+                                    "Curva Esperada"
+                                  )
+                                ) {
+                                  return `${
+                                    context.dataset.label
+                                  }: ${context.parsed.y?.toFixed(1)} kg`;
+                                }
+                                if (
+                                  context.dataset.label.includes("Peso Atual")
+                                ) {
+                                  return `${
+                                    context.dataset.label
+                                  }: ${context.parsed.y?.toFixed(1)} kg`;
+                                }
+                                return context.dataset.label;
                               },
                             },
                           },
@@ -960,36 +1271,113 @@ export default function AnimalDetailsPage() {
                             title: {
                               display: true,
                               text: "Idade (meses)",
+                              font: {
+                                size: 14,
+                                weight: "bold",
+                              },
+                            },
+                            grid: {
+                              display: true,
+                              color: "rgba(0, 0, 0, 0.1)",
                             },
                           },
                           y: {
                             title: {
                               display: true,
                               text: "Peso (kg)",
+                              font: {
+                                size: 14,
+                                weight: "bold",
+                              },
                             },
                             beginAtZero: true,
+                            grid: {
+                              display: true,
+                              color: "rgba(0, 0, 0, 0.1)",
+                            },
                           },
                         },
                         interaction: {
                           intersect: false,
                           mode: "index",
                         },
+                        elements: {
+                          point: {
+                            hoverRadius: 8,
+                          },
+                        },
                       }}
                     />
                   </div>
-                  <div className="mt-4 text-sm text-gray-600">
-                    <p>
-                      <strong>Legenda:</strong> A linha azul mostra a curva de
-                      crescimento esperada para a raça {animal.raca}. O ponto
-                      vermelho indica o peso atual do animal aos{" "}
-                      {calcularIdadeEmMeses(animal.dataNascimento)} meses de
-                      idade.
-                    </p>
-                    <p className="mt-2">
-                      <strong>Projeção:</strong> A curva continua até os 24
-                      meses, mostrando o desenvolvimento esperado até a
-                      maturidade.
-                    </p>
+                  <div className="mt-4 text-sm text-gray-600 space-y-2">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <p className="font-semibold text-gray-800 mb-2">
+                          🟢{" "}
+                          <strong>
+                            Faixas de Desenvolvimento (Intervalos):
+                          </strong>
+                        </p>
+                        <ul className="space-y-1 text-xs">
+                          <li>
+                            <span className="inline-block w-4 h-3 bg-green-200 rounded mr-2"></span>
+                            <strong>Crescimento Inicial:</strong> 0-3 meses
+                            (fase crítica)
+                          </li>
+                          <li>
+                            <span className="inline-block w-4 h-3 bg-pink-200 rounded mr-2"></span>
+                            <strong>Maturidade Sexual:</strong> ±1 mês de{" "}
+                            {racaCaracteristicas.maturidadeSexual || "?"} meses
+                          </li>
+                          <li>
+                            <span className="inline-block w-4 h-3 bg-amber-200 rounded mr-2"></span>
+                            <strong>Abate Precoce:</strong> ±15 dias de{" "}
+                            {racaCaracteristicas.abatePrecoceDias || "?"} dias
+                            (carne premium)
+                          </li>
+                          <li>
+                            <span className="inline-block w-4 h-3 bg-blue-200 rounded mr-2"></span>
+                            <strong>Abate Convencional:</strong> ±1 mês de{" "}
+                            {racaCaracteristicas.abateConvencionalDias || "?"}{" "}
+                            dias
+                          </li>
+                          <li>
+                            <span className="inline-block w-4 h-3 bg-red-200 rounded mr-2"></span>
+                            <strong>Abate Tardio:</strong>{" "}
+                            {racaCaracteristicas.abateTardioDiasMin || "?"}-
+                            {racaCaracteristicas.abateTardioDiasMax || "?"} dias
+                            (intervalo completo)
+                          </li>
+                        </ul>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-800 mb-2">
+                          📊 <strong>Interpretação:</strong>
+                        </p>
+                        <ul className="space-y-1 text-xs">
+                          <li>
+                            <strong>Linha Azul:</strong> Curva de crescimento
+                            esperada da raça
+                          </li>
+                          <li>
+                            <strong>Ponto Vermelho:</strong> Peso atual do
+                            animal aos{" "}
+                            {calcularIdadeEmMeses(
+                              animal.dataNascimento
+                            ).toFixed(1)}{" "}
+                            meses
+                          </li>
+                          <li>
+                            <strong>Faixas Coloridas:</strong> Janelas ideais
+                            para diferentes fases
+                          </li>
+                          <li>
+                            <strong>Posição no gráfico:</strong> Indica se o
+                            animal está dentro do período ideal
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

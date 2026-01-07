@@ -123,8 +123,6 @@ model Animal {
   raca                String?     // Raça do animal
   dataNascimento      DateTime?   // Data de nascimento
   sexo                String?     // Macho, Fêmea
-  pesoAoNascer        Float?      // Peso ao nascer em kg
-  pesoAtual           Float?      // Peso atual em kg
   rebanhoId           String
   rebanho             Rebanho     @relation(fields: [rebanhoId], references: [id], onDelete: Cascade)
   createdAt           DateTime    @default(now())
@@ -134,7 +132,20 @@ model Animal {
   emailComprador      String?     // Email do comprador quando vendido
   dataVenda           DateTime?   // Data da venda
 
+  pesosHistoricos     PesoHistorico[] // Histórico de pesos do animal
+
   @@unique([rebanhoId, numeroIdentificacao])
+}
+
+model PesoHistorico {
+  id        String   @id @default(uuid())
+  animalId  String   // ID do animal
+  peso      Float    // Peso em kg
+  dataPeso  DateTime // Data em que o peso foi registrado
+  observacao String? // Observação opcional sobre o peso
+  createdAt DateTime @default(now())
+
+  animal Animal @relation(fields: [animalId], references: [id], onDelete: Cascade)
 }
 
 model RacaCaracteristicas {

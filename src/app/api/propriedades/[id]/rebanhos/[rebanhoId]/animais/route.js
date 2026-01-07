@@ -91,9 +91,20 @@ export async function POST(request, { params }) {
       raca,
       dataNascimento,
       sexo,
-      pesoAoNascer,
-      pesoAtual,
+      pesosHistoricos, // Agora obrigatório - deve incluir pelo menos o peso ao nascer
     } = body;
+
+    // Validar que há pelo menos um peso histórico (peso ao nascer)
+    if (
+      !pesosHistoricos ||
+      !Array.isArray(pesosHistoricos) ||
+      pesosHistoricos.length === 0
+    ) {
+      return NextResponse.json(
+        { error: "É obrigatório informar pelo menos o peso ao nascer" },
+        { status: 400 }
+      );
+    }
 
     // Se não conseguiu userId via session.user.id, tentar buscar pelo email
     if (!userId && session?.user?.email) {
@@ -159,13 +170,53 @@ export async function POST(request, { params }) {
         raca: raca || null,
         dataNascimento: dataNascimento ? new Date(dataNascimento) : null,
         sexo: sexo || null,
-        pesoAoNascer: pesoAoNascer ? parseFloat(pesoAoNascer) : null,
-        pesoAtual: pesoAtual ? parseFloat(pesoAtual) : null,
         rebanhoId,
       },
     });
 
-    return NextResponse.json(animal, { status: 201 });
+    // Criar pesos históricos - garantir que o primeiro seja na data de nascimento
+    if (
+      pesosHistoricos &&
+      Array.isArray(pesosHistoricos) &&
+      pesosHistoricos.length > 0
+    ) {
+      // Verificar se o primeiro peso é na data de nascimento
+      const dataNasc = new Date(dataNascimento);
+      const primeiroPeso = pesosHistoricos[0];
+      const dataPrimeiroPeso = new Date(primeiroPeso.dataPeso);
+
+      // Se não for na data de nascimento, adicionar o peso ao nascer
+      if (dataPrimeiroPeso.getTime() !== dataNasc.getTime()) {
+        pesosHistoricos.unshift({
+          peso: primeiroPeso.peso, // Usar o peso fornecido como peso ao nascer
+          dataPeso: dataNasc.toISOString(),
+          observacao: "Peso ao nascer",
+        });
+      }
+
+      await prisma.pesoHistorico.createMany({
+        data: pesosHistoricos.map((peso) => ({
+          animalId: animal.id,
+          peso: parseFloat(peso.peso),
+          dataPeso: new Date(peso.dataPeso),
+          observacao: peso.observacao || null,
+        })),
+      });
+    }
+
+    // Retornar o animal com os pesos históricos
+    const animalComPesos = await prisma.animal.findUnique({
+      where: { id: animal.id },
+      include: {
+        pesosHistoricos: {
+          orderBy: {
+            dataPeso: "asc",
+          },
+        },
+      },
+    });
+
+    return NextResponse.json(animalComPesos, { status: 201 });
   } catch (error) {
     console.error("Erro ao criar animal:", error);
     return NextResponse.json(
