@@ -3,6 +3,12 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
+function isAdmin(email) {
+  const adminEmails =
+    process.env.ADMIN_EMAILS?.split(",").map((email) => email.trim()) || [];
+  return adminEmails.includes(email);
+}
+
 export async function GET(request, { params }) {
   try {
     const session = await getServerSession(authOptions);
@@ -22,17 +28,24 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
-    // Verificar se o animal existe e pertence ao rebanho/propriedade do usuário
+    // Verificar se o usuário é admin
+    const userIsAdmin = session?.user?.email && isAdmin(session.user.email);
+
+    // Verificar se o animal existe e pertence ao rebanho/propriedade do usuário (ou se é admin)
     const animal = await prisma.animal.findFirst({
       where: {
         id: animalId,
         rebanhoId,
-        rebanho: {
-          propriedadeId,
-          propriedade: {
-            proprietarioId: userId,
-          },
-        },
+        ...(userIsAdmin
+          ? {}
+          : {
+              rebanho: {
+                propriedadeId,
+                propriedade: {
+                  proprietarioId: userId,
+                },
+              },
+            }),
       },
     });
 

@@ -15,6 +15,8 @@ export default function AdminPanel() {
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("usuarios");
 
+  // Verificação de admin feita na API
+
   useEffect(() => {
     if (status === "loading") return;
 
@@ -23,6 +25,7 @@ export default function AdminPanel() {
       return;
     }
 
+    // Verificação de admin feita na API
     fetchUsers();
     fetchPropriedades();
   }, [session, status, router]);
@@ -34,19 +37,17 @@ export default function AdminPanel() {
 
       if (response.ok) {
         setUsers(data.users);
-        setLoading(false);
       } else {
         if (response.status === 403) {
+          // Usuário não é admin, redirecionar
           router.push("/painel");
           return;
         }
         setError(data.message || "Erro ao carregar usuários");
-        setLoading(false);
       }
     } catch (error) {
       console.error("Erro ao buscar usuários:", error);
       setError("Erro ao carregar usuários");
-      setLoading(false);
     }
   };
 
@@ -93,6 +94,7 @@ export default function AdminPanel() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
@@ -119,6 +121,7 @@ export default function AdminPanel() {
           </div>
         </div>
 
+        {/* Estatísticas */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white p-6 rounded-lg shadow-md">
             <div className="text-2xl font-bold text-blue-600">
@@ -140,15 +143,11 @@ export default function AdminPanel() {
           </div>
           <div className="bg-white p-6 rounded-lg shadow-md">
             <div className="text-2xl font-bold text-orange-600">
-              {propriedadesPorUsuario.reduce(
-                (total, user) => total + user.totalPropriedades,
-                0
-              )}
+              {propriedadesPorUsuario.reduce((total, user) => total + user.totalPropriedades, 0)}
             </div>
             <div className="text-gray-600">Total de Propriedades</div>
           </div>
-        </div>
-
+        {/* Tabs */}
         <div className="mb-8">
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-8">
@@ -170,18 +169,14 @@ export default function AdminPanel() {
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
-                Propriedades (
-                {propriedadesPorUsuario.reduce(
-                  (total, user) => total + user.totalPropriedades,
-                  0
-                )}
-                )
+                Propriedades ({propriedadesPorUsuario.reduce((total, user) => total + user.totalPropriedades, 0)})
               </button>
             </nav>
           </div>
         </div>
-
+        {/* Conteúdo baseado na aba ativa */}
         {activeTab === "usuarios" ? (
+          /* Tabela de Usuários */
           <div className="bg-white rounded-lg shadow-md overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200">
               <h2 className="text-xl font-semibold text-gray-900">
@@ -226,12 +221,10 @@ export default function AdminPanel() {
             )}
           </div>
         ) : (
+          /* Propriedades por Usuário */
           <div className="space-y-6">
             {propriedadesPorUsuario.map((usuarioData) => (
-              <div
-                key={usuarioData.usuario.id}
-                className="bg-white rounded-lg shadow-md overflow-hidden"
-              >
+              <div key={usuarioData.usuario.id} className="bg-white rounded-lg shadow-md overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
                   <div className="flex items-center justify-between">
                     <div>
@@ -244,10 +237,7 @@ export default function AdminPanel() {
                     </div>
                     <div className="text-right">
                       <div className="text-sm text-gray-500">
-                        {usuarioData.totalPropriedades} propriedade
-                        {usuarioData.totalPropriedades !== 1 ? "s" : ""} •{" "}
-                        {usuarioData.totalRebanhos} rebanho
-                        {usuarioData.totalRebanhos !== 1 ? "s" : ""}
+                        {usuarioData.totalPropriedades} propriedade{usuarioData.totalPropriedades !== 1 ? 's' : ''} • {usuarioData.totalRebanhos} rebanho{usuarioData.totalRebanhos !== 1 ? 's' : ''}
                       </div>
                     </div>
                   </div>
@@ -255,10 +245,7 @@ export default function AdminPanel() {
 
                 <div className="divide-y divide-gray-200">
                   {usuarioData.propriedades.map((propriedade) => (
-                    <div
-                      key={propriedade.id}
-                      className="px-6 py-4 hover:bg-gray-50"
-                    >
+                    <div key={propriedade.id} className="px-6 py-4 hover:bg-gray-50">
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
                           <div className="flex items-center">
@@ -270,16 +257,10 @@ export default function AdminPanel() {
                             </span>
                           </div>
                           <div className="mt-1 text-sm text-gray-600">
-                            📍 {propriedade.localidade} • 📏{" "}
-                            {propriedade.tamanho} ha • 🐐{" "}
-                            {propriedade.quantidadeRebanhos} rebanho
-                            {propriedade.quantidadeRebanhos !== 1 ? "s" : ""}
+                            📍 {propriedade.localidade} • 📏 {propriedade.tamanho} ha • 🐐 {propriedade.quantidadeRebanhos} rebanho{propriedade.quantidadeRebanhos !== 1 ? 's' : ''}
                           </div>
                           <div className="mt-1 text-xs text-gray-500">
-                            Criada em{" "}
-                            {new Date(propriedade.createdAt).toLocaleDateString(
-                              "pt-BR"
-                            )}
+                            Criada em {new Date(propriedade.createdAt).toLocaleDateString('pt-BR')}
                           </div>
                         </div>
                         <div className="ml-4">
@@ -297,9 +278,7 @@ export default function AdminPanel() {
 
                 {usuarioData.propriedades.length === 0 && (
                   <div className="text-center py-8">
-                    <p className="text-gray-500 text-sm">
-                      Nenhuma propriedade cadastrada.
-                    </p>
+                    <p className="text-gray-500 text-sm">Nenhuma propriedade cadastrada.</p>
                   </div>
                 )}
               </div>
