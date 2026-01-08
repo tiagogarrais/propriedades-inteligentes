@@ -6,6 +6,12 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import Button from "../../components/button";
 
+function isAdmin(email) {
+  // Lista de emails de administradores (mesma do backend)
+  const adminEmails = ["tiagoarraisholanda@gmail.com"];
+  return adminEmails.includes(email);
+}
+
 export default function PropriedadePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -334,7 +340,7 @@ export default function PropriedadePage() {
                       <option value="Sem raça definida (SRD)">
                         Sem raça definida (SRD)
                       </option>
-                      <option value="Boer (exótica)">Boer (exótica)</option>
+                      <option value="Boer">Boer</option>
                       <option value="Anglo-nubiana (exótica)">
                         Anglo-nubiana (exótica)
                       </option>
@@ -346,75 +352,302 @@ export default function PropriedadePage() {
                     </select>
                   </div>
                 )}
-                {caracteristicasRaca && (
+                {formData.tipo === "Caprino" && formData.raca && (
                   <div className="mt-4">
                     <h4 className="text-lg font-medium mb-2">
                       Características da Raça
                     </h4>
-                    <table className="w-full border border-gray-300 rounded-md">
-                      <thead>
-                        <tr className="bg-gray-100">
-                          <th className="border border-gray-300 px-4 py-2 text-left">
-                            Característica
-                          </th>
-                          <th className="border border-gray-300 px-4 py-2 text-left">
-                            Valor
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {caracteristicasRaca.origem && (
-                          <tr>
-                            <td className="border border-gray-300 px-4 py-2">
-                              Origem
-                            </td>
-                            <td className="border border-gray-300 px-4 py-2">
-                              {caracteristicasRaca.origem}
-                            </td>
+                    {caracteristicasRaca ? (
+                      <table className="w-full border border-gray-300 rounded-md">
+                        <thead>
+                          <tr className="bg-gray-100">
+                            <th className="border border-gray-300 px-4 py-2 text-left">
+                              Característica
+                            </th>
+                            <th className="border border-gray-300 px-4 py-2 text-left">
+                              Valor
+                            </th>
                           </tr>
-                        )}
-                        {caracteristicasRaca.pesoNascer && (
-                          <tr>
-                            <td className="border border-gray-300 px-4 py-2">
-                              Peso médio ao nascer
-                            </td>
-                            <td className="border border-gray-300 px-4 py-2">
-                              {caracteristicasRaca.pesoNascer} kg
-                            </td>
-                          </tr>
-                        )}
-                        {caracteristicasRaca.peso10Meses && (
-                          <tr>
-                            <td className="border border-gray-300 px-4 py-2">
-                              Peso médio aos 10 meses
-                            </td>
-                            <td className="border border-gray-300 px-4 py-2">
-                              {caracteristicasRaca.peso10Meses} kg
-                            </td>
-                          </tr>
-                        )}
-                        {caracteristicasRaca.pesoMachoAdulto && (
-                          <tr>
-                            <td className="border border-gray-300 px-4 py-2">
-                              Peso médio do macho adulto
-                            </td>
-                            <td className="border border-gray-300 px-4 py-2">
-                              {caracteristicasRaca.pesoMachoAdulto} kg
-                            </td>
-                          </tr>
-                        )}
-                        {caracteristicasRaca.pesoFemeaAdulta && (
-                          <tr>
-                            <td className="border border-gray-300 px-4 py-2">
-                              Peso médio da fêmea adulta
-                            </td>
-                            <td className="border border-gray-300 px-4 py-2">
-                              {caracteristicasRaca.pesoFemeaAdulta} kg
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {caracteristicasRaca.origem && (
+                            <tr>
+                              <td className="border border-gray-300 px-4 py-2">
+                                Origem
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2">
+                                {caracteristicasRaca.origem}
+                              </td>
+                            </tr>
+                          )}
+                          {caracteristicasRaca.pesoNascer && (
+                            <tr>
+                              <td className="border border-gray-300 px-4 py-2">
+                                Peso médio ao nascer
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2">
+                                {caracteristicasRaca.pesoNascer} kg
+                              </td>
+                            </tr>
+                          )}
+                          {caracteristicasRaca.peso10Meses && (
+                            <tr>
+                              <td className="border border-gray-300 px-4 py-2">
+                                Peso médio aos 10 meses
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2">
+                                {caracteristicasRaca.peso10Meses} kg
+                              </td>
+                            </tr>
+                          )}
+                          {caracteristicasRaca.pesoMachoAdulto && (
+                            <tr>
+                              <td className="border border-gray-300 px-4 py-2">
+                                Peso médio do macho adulto
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2">
+                                {caracteristicasRaca.pesoMachoAdulto} kg
+                              </td>
+                            </tr>
+                          )}
+                          {caracteristicasRaca.pesoFemeaAdulta && (
+                            <tr>
+                              <td className="border border-gray-300 px-4 py-2">
+                                Peso médio da fêmea adulta
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2">
+                                {caracteristicasRaca.pesoFemeaAdulta} kg
+                              </td>
+                            </tr>
+                          )}
+                          {caracteristicasRaca.maturidadeSexual && (
+                            <tr>
+                              <td className="border border-gray-300 px-4 py-2">
+                                Maturidade sexual
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2">
+                                {caracteristicasRaca.maturidadeSexual} meses
+                              </td>
+                            </tr>
+                          )}
+                          {caracteristicasRaca.femeaTemLeite !== undefined && (
+                            <tr>
+                              <td className="border border-gray-300 px-4 py-2">
+                                Fêmea tem leite suficiente
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2">
+                                {caracteristicasRaca.femeaTemLeite
+                                  ? "Sim"
+                                  : "Não"}
+                              </td>
+                            </tr>
+                          )}
+                          {caracteristicasRaca.periodoGestacao && (
+                            <tr>
+                              <td className="border border-gray-300 px-4 py-2">
+                                Período de gestação
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2">
+                                {caracteristicasRaca.periodoGestacao} dias
+                              </td>
+                            </tr>
+                          )}
+                          {caracteristicasRaca.quantidadeCabritosParto && (
+                            <tr>
+                              <td className="border border-gray-300 px-4 py-2">
+                                Quantidade média de cabritos por parto
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2">
+                                {caracteristicasRaca.quantidadeCabritosParto}
+                              </td>
+                            </tr>
+                          )}
+                          {caracteristicasRaca.abatePrecoceDias && (
+                            <tr>
+                              <td className="border border-gray-300 px-4 py-2">
+                                Dias para abate precoce
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2">
+                                {caracteristicasRaca.abatePrecoceDias} dias
+                              </td>
+                            </tr>
+                          )}
+                          {caracteristicasRaca.abateConvencionalDias && (
+                            <tr>
+                              <td className="border border-gray-300 px-4 py-2">
+                                Dias para abate convencional
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2">
+                                {caracteristicasRaca.abateConvencionalDias} dias
+                              </td>
+                            </tr>
+                          )}
+                          {(caracteristicasRaca.abateTardioDiasMin ||
+                            caracteristicasRaca.abateTardioDiasMax) && (
+                            <tr>
+                              <td className="border border-gray-300 px-4 py-2">
+                                Dias para abate tardio
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2">
+                                {caracteristicasRaca.abateTardioDiasMin &&
+                                caracteristicasRaca.abateTardioDiasMax
+                                  ? `${caracteristicasRaca.abateTardioDiasMin}-${caracteristicasRaca.abateTardioDiasMax} dias`
+                                  : caracteristicasRaca.abateTardioDiasMin
+                                  ? `Mínimo ${caracteristicasRaca.abateTardioDiasMin} dias`
+                                  : `Máximo ${caracteristicasRaca.abateTardioDiasMax} dias`}
+                              </td>
+                            </tr>
+                          )}
+                          {caracteristicasRaca.pelagemCouro && (
+                            <tr>
+                              <td className="border border-gray-300 px-4 py-2">
+                                Pelagem do couro
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2">
+                                {caracteristicasRaca.pelagemCouro}
+                              </td>
+                            </tr>
+                          )}
+                          {caracteristicasRaca.maxFemeasPorMacho && (
+                            <tr>
+                              <td className="border border-gray-300 px-4 py-2">
+                                Máximo de fêmeas por macho
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2">
+                                {caracteristicasRaca.maxFemeasPorMacho}
+                              </td>
+                            </tr>
+                          )}
+                          {caracteristicasRaca.femeasPorMachoIdeal && (
+                            <tr>
+                              <td className="border border-gray-300 px-4 py-2">
+                                Fêmeas por macho ideal
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2">
+                                {caracteristicasRaca.femeasPorMachoIdeal}
+                              </td>
+                            </tr>
+                          )}
+                          {caracteristicasRaca.ganhoPesoDiaGramas && (
+                            <tr>
+                              <td className="border border-gray-300 px-4 py-2">
+                                Ganho de peso por dia
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2">
+                                {caracteristicasRaca.ganhoPesoDiaGramas} gramas
+                              </td>
+                            </tr>
+                          )}
+                          {caracteristicasRaca.percentualGorduraCarne && (
+                            <tr>
+                              <td className="border border-gray-300 px-4 py-2">
+                                Percentual de gordura da carne
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2">
+                                {caracteristicasRaca.percentualGorduraCarne}
+                              </td>
+                            </tr>
+                          )}
+                          {caracteristicasRaca.indiceColesterol && (
+                            <tr>
+                              <td className="border border-gray-300 px-4 py-2">
+                                Índice de colesterol
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2">
+                                {caracteristicasRaca.indiceColesterol}
+                              </td>
+                            </tr>
+                          )}
+                          {caracteristicasRaca.indiceGorduraSaturada && (
+                            <tr>
+                              <td className="border border-gray-300 px-4 py-2">
+                                Índice de gordura saturada
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2">
+                                {caracteristicasRaca.indiceGorduraSaturada}
+                              </td>
+                            </tr>
+                          )}
+                          {caracteristicasRaca.indiceCalorias && (
+                            <tr>
+                              <td className="border border-gray-300 px-4 py-2">
+                                Índice de calorias
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2">
+                                {caracteristicasRaca.indiceCalorias}
+                              </td>
+                            </tr>
+                          )}
+                          {caracteristicasRaca.carneMacia !== undefined && (
+                            <tr>
+                              <td className="border border-gray-300 px-4 py-2">
+                                Carne macia
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2">
+                                {caracteristicasRaca.carneMacia ? "Sim" : "Não"}
+                              </td>
+                            </tr>
+                          )}
+                          {caracteristicasRaca.carneSaborosa !== undefined && (
+                            <tr>
+                              <td className="border border-gray-300 px-4 py-2">
+                                Carne saborosa
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2">
+                                {caracteristicasRaca.carneSaborosa
+                                  ? "Sim"
+                                  : "Não"}
+                              </td>
+                            </tr>
+                          )}
+                          {caracteristicasRaca.carneSucculenta !==
+                            undefined && (
+                            <tr>
+                              <td className="border border-gray-300 px-4 py-2">
+                                Carne suculenta
+                              </td>
+                              <td className="border border-gray-300 px-4 py-2">
+                                {caracteristicasRaca.carneSucculenta
+                                  ? "Sim"
+                                  : "Não"}
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    ) : (
+                      <p className="text-gray-500">
+                        Nenhuma característica cadastrada para esta raça.
+                      </p>
+                    )}
+                    {session?.user?.email &&
+                      isAdmin(session.user.email) &&
+                      formData.tipo === "Caprino" &&
+                      formData.raca && (
+                        <div className="mt-4">
+                          <Link
+                            href={`/admin/racas/editar?tipo=${encodeURIComponent(
+                              formData.tipo
+                            )}&raca=${encodeURIComponent(formData.raca)}`}
+                            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+                          >
+                            <svg
+                              className="w-4 h-4 mr-2"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                              />
+                            </svg>
+                            Editar características
+                          </Link>
+                        </div>
+                      )}
                   </div>
                 )}
                 <Button

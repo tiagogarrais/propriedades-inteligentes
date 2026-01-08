@@ -385,7 +385,11 @@ const NovaPropriedadeForm = () => {
                 </Button>
                 <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
                   <p className="text-sm text-blue-800">
-                    <strong>💡 Dica:</strong> As coordenadas GPS devem ser cadastradas apenas se você conhecer a localização exata da propriedade ou estiver fisicamente no local para capturar os dados por GPS. Coordenadas incorretas podem comprometer a precisão das informações.
+                    <strong>💡 Dica:</strong> As coordenadas GPS devem ser
+                    cadastradas apenas se você conhecer a localização exata da
+                    propriedade ou estiver fisicamente no local para capturar os
+                    dados por GPS. Coordenadas incorretas podem comprometer a
+                    precisão das informações.
                   </p>
                 </div>
               </div>

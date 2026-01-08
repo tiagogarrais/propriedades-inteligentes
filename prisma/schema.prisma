@@ -124,6 +124,7 @@ model Animal {
   raca                String?     // Raça do animal
   dataNascimento      DateTime?   // Data de nascimento
   sexo                String?     // Macho, Fêmea
+  ganhoPesoDiaGramas  Float?      // Ganho de peso diário individual do animal (gramas)
   rebanhoId           String
   rebanho             Rebanho     @relation(fields: [rebanhoId], references: [id], onDelete: Cascade)
   createdAt           DateTime    @default(now())
@@ -160,7 +161,7 @@ model RacaCaracteristicas {
   pesoFemeaAdulta           Float?  // Peso médio da fêmea adulta em kg
   
   // Novos campos para informações detalhadas da raça
-  maturidadeSexual          Int?    // Maturidade sexual em meses
+  maturidadeSexual          Int?    // Maturidade sexual em dias
   femeaTemLeite             Boolean @default(true) // Se a fêmea possui leite suficiente para alimentar cria
   periodoGestacao           Int?    // Período de gestação em dias
   quantidadeCabritosParto   Float?  // Quantidade média de cabritos por parto
@@ -172,13 +173,16 @@ model RacaCaracteristicas {
   maxFemeasPorMacho         Int?    // Máximo de fêmeas por macho
   femeasPorMachoIdeal       Int?    // Número ideal de fêmeas por macho
   ganhoPesoDiaGramas        Float?  // Ganho aproximado de peso por dia em gramas
-  percentualGorduraCarne    String? // Percentual de gordura da carne
+  percentualGorduraCarne    Float?  // Percentual de gordura da carne
   indiceColesterol          String? // Índice de colesterol (baixo, médio, alto)
   indiceGorduraSaturada     String? // Índice de gordura saturada
   indiceCalorias            String? // Índice de calorias
   carneMacia                Boolean @default(true) // Se a carne é macia
   carneSaborosa             Boolean @default(true) // Se a carne é saborosa
   carneSucculenta           Boolean @default(true) // Se a carne é suculenta
+
+  // Fases do ganho de peso
+  fasesGanhoPeso            Json?   // Array de objetos {id, nome, mesInicio, mesFim}
 
   @@unique([tipo, raca])
 }

@@ -8,7 +8,7 @@ async function main() {
     where: {
       tipo_raca: {
         tipo: "Caprino",
-        raca: "Boer (exótica)",
+        raca: "Boer",
       },
     },
     update: {
@@ -40,7 +40,7 @@ async function main() {
     },
     create: {
       tipo: "Caprino",
-      raca: "Boer (exótica)",
+      raca: "Boer",
       origem: "África do Sul",
       pesoNascer: 3.5,
       peso10Meses: 35.0,

@@ -654,7 +654,7 @@ export default function RebanhoPage() {
                         <option value="Sem raça definida (SRD)">
                           Sem raça definida (SRD)
                         </option>
-                        <option value="Boer (exótica)">Boer (exótica)</option>
+                        <option value="Boer">Boer</option>
                         <option value="Anglo-nubiana (exótica)">
                           Anglo-nubiana (exótica)
                         </option>
