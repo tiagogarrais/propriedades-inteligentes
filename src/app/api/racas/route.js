@@ -10,7 +10,7 @@ export async function GET(request) {
   }
 
   try {
-    // Buscar raças distintas do tipo especificado
+    // Buscar todas as raças do tipo especificado e remover duplicatas manualmente
     const racas = await prisma.racaCaracteristicas.findMany({
       where: {
         tipo: tipo,
@@ -18,14 +18,14 @@ export async function GET(request) {
       select: {
         raca: true,
       },
-      distinct: ["raca"],
       orderBy: {
         raca: "asc",
       },
     });
 
-    // Extrair apenas os nomes das raças
-    const racasNomes = racas.map((item) => item.raca);
+    // Remover duplicatas manualmente e extrair apenas os nomes das raças
+    const racasUnicas = [...new Set(racas.map((item) => item.raca))];
+    const racasNomes = racasUnicas.sort();
 
     return NextResponse.json(racasNomes);
   } catch (error) {

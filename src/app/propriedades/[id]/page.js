@@ -26,7 +26,30 @@ export default function PropriedadePage() {
     tipo: "",
     raca: "",
   });
+  const [racasDisponiveis, setRacasDisponiveis] = useState([]);
   const [caracteristicasRaca, setCaracteristicasRaca] = useState(null);
+
+  useEffect(() => {
+    const fetchRacas = async () => {
+      if (formData.tipo) {
+        try {
+          const response = await fetch(
+            `/api/racas?tipo=${encodeURIComponent(formData.tipo)}`
+          );
+          if (response.ok) {
+            const data = await response.json();
+            setRacasDisponiveis(data);
+          }
+        } catch (error) {
+          console.error("Erro ao buscar raças:", error);
+        }
+      } else {
+        setRacasDisponiveis([]);
+      }
+    };
+
+    fetchRacas();
+  }, [formData.tipo]);
 
   useEffect(() => {
     const fetchCaracteristicas = async () => {
@@ -301,9 +324,14 @@ export default function PropriedadePage() {
                   </label>
                   <select
                     value={formData.tipo}
-                    onChange={(e) =>
-                      setFormData({ ...formData, tipo: e.target.value })
-                    }
+                    onChange={(e) => {
+                      setFormData({
+                        ...formData,
+                        tipo: e.target.value,
+                        raca: "",
+                      });
+                      setRacasDisponiveis([]);
+                    }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                     required
                   >
@@ -315,7 +343,7 @@ export default function PropriedadePage() {
                     <option value="Equino">Equino</option>
                   </select>
                 </div>
-                {formData.tipo === "Caprino" && (
+                {formData.tipo && (
                   <div>
                     <label className="block text-gray-700 mb-2">
                       Raça <span className="text-red-500">*</span>
@@ -329,30 +357,15 @@ export default function PropriedadePage() {
                       required
                     >
                       <option value="">Selecione a raça</option>
-                      <option value="Moxotó (nativa)">Moxotó (nativa)</option>
-                      <option value="Repartida ou Surrão (nativa)">
-                        Repartida ou Surrão (nativa)
-                      </option>
-                      <option value="Marota ou Curaça (nativa)">
-                        Marota ou Curaça (nativa)
-                      </option>
-                      <option value="Canindé (nativa)">Canindé (nativa)</option>
-                      <option value="Sem raça definida (SRD)">
-                        Sem raça definida (SRD)
-                      </option>
-                      <option value="Boer">Boer</option>
-                      <option value="Anglo-nubiana (exótica)">
-                        Anglo-nubiana (exótica)
-                      </option>
-                      <option value="Saanen (exótica)">Saanen (exótica)</option>
-                      <option value="Parda-alpina (exótica)">
-                        Parda-alpina (exótica)
-                      </option>
-                      <option value="Rebanho misto">Rebanho misto</option>
+                      {racasDisponiveis.map((raca, index) => (
+                        <option key={index} value={raca}>
+                          {raca}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 )}
-                {formData.tipo === "Caprino" && formData.raca && (
+                {formData.tipo && formData.raca && (
                   <div className="mt-4">
                     <h4 className="text-lg font-medium mb-2">
                       Características da Raça

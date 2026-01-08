@@ -181,8 +181,14 @@ export default function AnimalDetailsPage() {
   const gerarDadosGraficoFase = (faseAtual, idadeMeses, animal) => {
     if (!faseAtual || !animal?.dataNascimento) return null;
 
-    const pesoInicio = animal.sexo === "Macho" ? faseAtual.pesoMedioInicioMacho : faseAtual.pesoMedioInicioFemea;
-    const pesoFim = animal.sexo === "Macho" ? faseAtual.pesoMedioFimMacho : faseAtual.pesoMedioFimFemea;
+    const pesoInicio =
+      animal.sexo === "Macho"
+        ? faseAtual.pesoMedioInicioMacho
+        : faseAtual.pesoMedioInicioFemea;
+    const pesoFim =
+      animal.sexo === "Macho"
+        ? faseAtual.pesoMedioFimMacho
+        : faseAtual.pesoMedioFimFemea;
 
     if (!pesoInicio || !pesoFim) return null;
 
@@ -209,15 +215,21 @@ export default function AnimalDetailsPage() {
       // Ordenar pesos por data
       const pesosOrdenados = [...animal.pesosHistoricos]
         .sort((a, b) => new Date(a.dataPeso) - new Date(b.dataPeso))
-        .filter(peso => {
+        .filter((peso) => {
           const dataPeso = new Date(peso.dataPeso);
-          const mesesDesdeNascimento = Math.floor((dataPeso - nascimento) / (1000 * 60 * 60 * 24 * 30.44));
-          return mesesDesdeNascimento >= mesInicio && mesesDesdeNascimento <= mesFim;
+          const mesesDesdeNascimento = Math.floor(
+            (dataPeso - nascimento) / (1000 * 60 * 60 * 24 * 30.44)
+          );
+          return (
+            mesesDesdeNascimento >= mesInicio && mesesDesdeNascimento <= mesFim
+          );
         });
 
-      pesosOrdenados.forEach(peso => {
+      pesosOrdenados.forEach((peso) => {
         const dataPeso = new Date(peso.dataPeso);
-        const mesesDesdeNascimento = Math.floor((dataPeso - nascimento) / (1000 * 60 * 60 * 24 * 30.44));
+        const mesesDesdeNascimento = Math.floor(
+          (dataPeso - nascimento) / (1000 * 60 * 60 * 24 * 30.44)
+        );
         const indice = mesesDesdeNascimento - mesInicio;
 
         if (indice >= 0 && indice < dadosReais.length) {
@@ -710,7 +722,11 @@ export default function AnimalDetailsPage() {
 
                 {/* Gráfico de Curva de Peso */}
                 {(() => {
-                  const dadosGrafico = gerarDadosGraficoFase(faseAtual, idadeMeses, animal);
+                  const dadosGrafico = gerarDadosGraficoFase(
+                    faseAtual,
+                    idadeMeses,
+                    animal
+                  );
                   return dadosGrafico ? (
                     <div className="mt-8">
                       <h4 className="font-semibold text-gray-900 mb-4">
@@ -731,11 +747,13 @@ export default function AnimalDetailsPage() {
                               },
                               tooltip: {
                                 callbacks: {
-                                  label: function(context) {
-                                    return `${context.dataset.label}: ${context.parsed.y?.toFixed(1)} kg`;
-                                  }
-                                }
-                              }
+                                  label: function (context) {
+                                    return `${
+                                      context.dataset.label
+                                    }: ${context.parsed.y?.toFixed(1)} kg`;
+                                  },
+                                },
+                              },
                             },
                             scales: {
                               x: {
@@ -766,8 +784,9 @@ export default function AnimalDetailsPage() {
                       </div>
                       <div className="mt-2 text-sm text-gray-600">
                         <p>
-                          <strong>Legenda:</strong> Linha azul mostra o peso esperado para a raça.
-                          Linha verde mostra os pesos reais registrados do animal.
+                          <strong>Legenda:</strong> Linha azul mostra o peso
+                          esperado para a raça. Linha verde mostra os pesos
+                          reais registrados do animal.
                         </p>
                       </div>
                     </div>
