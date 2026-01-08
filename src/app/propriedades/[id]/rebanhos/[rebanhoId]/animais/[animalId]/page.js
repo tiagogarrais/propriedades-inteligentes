@@ -4,6 +4,28 @@ import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import { Line } from "react-chartjs-2";
+
+// Registrar componentes do Chart.js
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 export default function AnimalDetailsPage() {
   const { data: session, status } = useSession();
@@ -135,7 +157,8 @@ export default function AnimalDetailsPage() {
   };
 
   const obterFaseAtual = () => {
-    if (!animal?.dataNascimento || !racaCaracteristicas?.fasesGanhoPeso) return null;
+    if (!animal?.dataNascimento || !racaCaracteristicas?.fasesGanhoPeso)
+      return null;
 
     const idadeMeses = calcularIdadeEmMeses(animal.dataNascimento);
 
@@ -153,6 +176,80 @@ export default function AnimalDetailsPage() {
     if (idadeMeses <= 24) return sexo === "Macho" ? "Garrote" : "Garrocha";
     if (idadeMeses <= 36) return sexo === "Macho" ? "Toucinho" : "Toucinha";
     return sexo === "Macho" ? "Adulto" : "Adulta";
+  };
+
+  const gerarDadosGraficoFase = (faseAtual, idadeMeses, animal) => {
+    if (!faseAtual || !animal?.dataNascimento) return null;
+
+    const pesoInicio = animal.sexo === "Macho" ? faseAtual.pesoMedioInicioMacho : faseAtual.pesoMedioInicioFemea;
+    const pesoFim = animal.sexo === "Macho" ? faseAtual.pesoMedioFimMacho : faseAtual.pesoMedioFimFemea;
+
+    if (!pesoInicio || !pesoFim) return null;
+
+    const mesInicio = faseAtual.mesInicio || 0;
+    const mesFim = faseAtual.mesFim || idadeMeses + 1;
+    const totalMeses = mesFim - mesInicio;
+
+    // Gerar pontos da curva esperada
+    const labels = [];
+    const dadosEsperados = [];
+
+    for (let mes = mesInicio; mes <= mesFim; mes++) {
+      labels.push(`${mes} meses`);
+      const progresso = (mes - mesInicio) / totalMeses;
+      const pesoEsperado = pesoInicio + (pesoFim - pesoInicio) * progresso;
+      dadosEsperados.push(pesoEsperado);
+    }
+
+    // Preparar dados reais do animal (últimos 12 meses ou conforme disponível)
+    const dadosReais = new Array(labels.length).fill(null);
+    const nascimento = new Date(animal.dataNascimento);
+
+    if (animal.pesosHistoricos && animal.pesosHistoricos.length > 0) {
+      // Ordenar pesos por data
+      const pesosOrdenados = [...animal.pesosHistoricos]
+        .sort((a, b) => new Date(a.dataPeso) - new Date(b.dataPeso))
+        .filter(peso => {
+          const dataPeso = new Date(peso.dataPeso);
+          const mesesDesdeNascimento = Math.floor((dataPeso - nascimento) / (1000 * 60 * 60 * 24 * 30.44));
+          return mesesDesdeNascimento >= mesInicio && mesesDesdeNascimento <= mesFim;
+        });
+
+      pesosOrdenados.forEach(peso => {
+        const dataPeso = new Date(peso.dataPeso);
+        const mesesDesdeNascimento = Math.floor((dataPeso - nascimento) / (1000 * 60 * 60 * 24 * 30.44));
+        const indice = mesesDesdeNascimento - mesInicio;
+
+        if (indice >= 0 && indice < dadosReais.length) {
+          dadosReais[indice] = peso.peso;
+        }
+      });
+    }
+
+    return {
+      labels,
+      datasets: [
+        {
+          label: "Peso Esperado (Raça)",
+          data: dadosEsperados,
+          borderColor: "rgb(59, 130, 246)",
+          backgroundColor: "rgba(59, 130, 246, 0.1)",
+          borderWidth: 3,
+          fill: false,
+          tension: 0.4,
+        },
+        {
+          label: `Peso Real (${animal.nome})`,
+          data: dadosReais,
+          borderColor: "rgb(16, 185, 129)",
+          backgroundColor: "rgba(16, 185, 129, 0.1)",
+          borderWidth: 3,
+          fill: false,
+          tension: 0.4,
+          spanGaps: true,
+        },
+      ],
+    };
   };
 
   const calcularGanhoPeso = () => {
@@ -434,7 +531,8 @@ export default function AnimalDetailsPage() {
 
         {/* Fase Atual de Vida */}
         {racaCaracteristicas?.fasesGanhoPeso &&
-          racaCaracteristicas.fasesGanhoPeso.length > 0 && (() => {
+          racaCaracteristicas.fasesGanhoPeso.length > 0 &&
+          (() => {
             const faseAtual = obterFaseAtual();
             const idadeMeses = calcularIdadeEmMeses(animal.dataNascimento);
             const pesoAtual = obterPesoAtual();
@@ -442,8 +540,14 @@ export default function AnimalDetailsPage() {
 
             if (!faseAtual) return null;
 
-            const pesoInicio = animal.sexo === "Macho" ? faseAtual.pesoMedioInicioMacho : faseAtual.pesoMedioInicioFemea;
-            const pesoFim = animal.sexo === "Macho" ? faseAtual.pesoMedioFimMacho : faseAtual.pesoMedioFimFemea;
+            const pesoInicio =
+              animal.sexo === "Macho"
+                ? faseAtual.pesoMedioInicioMacho
+                : faseAtual.pesoMedioInicioFemea;
+            const pesoFim =
+              animal.sexo === "Macho"
+                ? faseAtual.pesoMedioFimMacho
+                : faseAtual.pesoMedioFimFemea;
 
             // Calcular desempenho comparativo
             let statusPeso = "normal";
@@ -451,16 +555,24 @@ export default function AnimalDetailsPage() {
             let corStatus = "text-gray-600";
 
             if (pesoAtual && pesoInicio && pesoFim) {
-              const progressoEsperado = (idadeMeses - (faseAtual.mesInicio || 0)) / ((faseAtual.mesFim || idadeMeses + 1) - (faseAtual.mesInicio || 0));
-              const pesoEsperado = pesoInicio + (pesoFim - pesoInicio) * progressoEsperado;
+              const progressoEsperado =
+                (idadeMeses - (faseAtual.mesInicio || 0)) /
+                ((faseAtual.mesFim || idadeMeses + 1) -
+                  (faseAtual.mesInicio || 0));
+              const pesoEsperado =
+                pesoInicio + (pesoFim - pesoInicio) * progressoEsperado;
 
               if (pesoAtual.peso > pesoEsperado * 1.1) {
                 statusPeso = "acima";
-                comparacaoTexto = `+${(pesoAtual.peso - pesoEsperado).toFixed(1)} kg acima da média`;
+                comparacaoTexto = `+${(pesoAtual.peso - pesoEsperado).toFixed(
+                  1
+                )} kg acima da média`;
                 corStatus = "text-green-600";
               } else if (pesoAtual.peso < pesoEsperado * 0.9) {
                 statusPeso = "abaixo";
-                comparacaoTexto = `${(pesoEsperado - pesoAtual.peso).toFixed(1)} kg abaixo da média`;
+                comparacaoTexto = `${(pesoEsperado - pesoAtual.peso).toFixed(
+                  1
+                )} kg abaixo da média`;
                 corStatus = "text-red-600";
               } else {
                 comparacaoTexto = "Dentro da média da raça";
@@ -484,19 +596,28 @@ export default function AnimalDetailsPage() {
                       <div className="flex justify-between">
                         <span className="text-gray-600">Período:</span>
                         <span className="font-medium">
-                          {faseAtual.mesInicio || 0} - {faseAtual.mesFim || "?"} meses
+                          {faseAtual.mesInicio || 0} - {faseAtual.mesFim || "?"}{" "}
+                          meses
                         </span>
                       </div>
                       {pesoInicio && (
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Peso Início ({animal.sexo}):</span>
-                          <span className="font-medium">{pesoInicio.toFixed(1)} kg</span>
+                          <span className="text-gray-600">
+                            Peso Início ({animal.sexo}):
+                          </span>
+                          <span className="font-medium">
+                            {pesoInicio.toFixed(1)} kg
+                          </span>
                         </div>
                       )}
                       {pesoFim && (
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Peso Fim ({animal.sexo}):</span>
-                          <span className="font-medium">{pesoFim.toFixed(1)} kg</span>
+                          <span className="text-gray-600">
+                            Peso Fim ({animal.sexo}):
+                          </span>
+                          <span className="font-medium">
+                            {pesoFim.toFixed(1)} kg
+                          </span>
                         </div>
                       )}
                       {pesoInicio && pesoFim && (
@@ -525,13 +646,19 @@ export default function AnimalDetailsPage() {
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Data da Pesagem:</span>
+                            <span className="text-gray-600">
+                              Data da Pesagem:
+                            </span>
                             <span className="font-medium">
-                              {new Date(pesoAtual.dataPeso).toLocaleDateString("pt-BR")}
+                              {new Date(pesoAtual.dataPeso).toLocaleDateString(
+                                "pt-BR"
+                              )}
                             </span>
                           </div>
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-600">Comparação com Média:</span>
+                            <span className="text-gray-600">
+                              Comparação com Média:
+                            </span>
                             <span className={`font-medium ${corStatus}`}>
                               {comparacaoTexto}
                             </span>
@@ -555,13 +682,22 @@ export default function AnimalDetailsPage() {
                     <div className="w-full bg-gray-200 rounded-full h-4">
                       <div
                         className={`h-4 rounded-full ${
-                          statusPeso === "acima" ? "bg-green-500" :
-                          statusPeso === "abaixo" ? "bg-red-500" : "bg-blue-500"
+                          statusPeso === "acima"
+                            ? "bg-green-500"
+                            : statusPeso === "abaixo"
+                            ? "bg-red-500"
+                            : "bg-blue-500"
                         }`}
                         style={{
-                          width: `${Math.min(100, Math.max(0,
-                            ((pesoAtual.peso - pesoInicio) / (pesoFim - pesoInicio)) * 100
-                          ))}%`
+                          width: `${Math.min(
+                            100,
+                            Math.max(
+                              0,
+                              ((pesoAtual.peso - pesoInicio) /
+                                (pesoFim - pesoInicio)) *
+                                100
+                            )
+                          )}%`,
                         }}
                       ></div>
                     </div>
@@ -571,6 +707,72 @@ export default function AnimalDetailsPage() {
                     </div>
                   </div>
                 )}
+
+                {/* Gráfico de Curva de Peso */}
+                {(() => {
+                  const dadosGrafico = gerarDadosGraficoFase(faseAtual, idadeMeses, animal);
+                  return dadosGrafico ? (
+                    <div className="mt-8">
+                      <h4 className="font-semibold text-gray-900 mb-4">
+                        Curva de Peso - Fase Atual ({faseAtual.nome})
+                      </h4>
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <Line
+                          data={dadosGrafico}
+                          options={{
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                              legend: {
+                                position: "top",
+                              },
+                              title: {
+                                display: false,
+                              },
+                              tooltip: {
+                                callbacks: {
+                                  label: function(context) {
+                                    return `${context.dataset.label}: ${context.parsed.y?.toFixed(1)} kg`;
+                                  }
+                                }
+                              }
+                            },
+                            scales: {
+                              x: {
+                                display: true,
+                                title: {
+                                  display: true,
+                                  text: "Idade (meses)",
+                                },
+                              },
+                              y: {
+                                display: true,
+                                title: {
+                                  display: true,
+                                  text: "Peso (kg)",
+                                },
+                                beginAtZero: false,
+                              },
+                            },
+                            elements: {
+                              point: {
+                                radius: 4,
+                                hoverRadius: 6,
+                              },
+                            },
+                          }}
+                          height={300}
+                        />
+                      </div>
+                      <div className="mt-2 text-sm text-gray-600">
+                        <p>
+                          <strong>Legenda:</strong> Linha azul mostra o peso esperado para a raça.
+                          Linha verde mostra os pesos reais registrados do animal.
+                        </p>
+                      </div>
+                    </div>
+                  ) : null;
+                })()}
               </div>
             );
           })()}
