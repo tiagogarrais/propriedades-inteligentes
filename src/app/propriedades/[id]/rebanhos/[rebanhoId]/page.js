@@ -250,12 +250,16 @@ export default function RebanhoPage() {
   };
 
   const handleEdit = (animal) => {
-    // Encontrar o peso ao nascer (primeiro peso histórico)
+    // Encontrar o peso ao nascer (peso com observação "Peso ao nascer" ou na data de nascimento)
     const pesoAoNascer =
       animal.pesosHistoricos && animal.pesosHistoricos.length > 0
-        ? animal.pesosHistoricos.sort(
-            (a, b) => new Date(a.dataPeso) - new Date(b.dataPeso)
-          )[0].peso
+        ? animal.pesosHistoricos.find(
+            (peso) =>
+              peso.observacao === "Peso ao nascer" ||
+              (animal.dataNascimento &&
+                new Date(peso.dataPeso).getTime() ===
+                  new Date(animal.dataNascimento).getTime())
+          )?.peso || ""
         : "";
 
     setFormData({
@@ -273,11 +277,22 @@ export default function RebanhoPage() {
     });
     // Carregar pesos históricos adicionais (excluindo o peso ao nascer)
     const pesosAdicionais =
-      animal.pesosHistoricos && animal.pesosHistoricos.length > 1
+      animal.pesosHistoricos && animal.pesosHistoricos.length > 0
         ? animal.pesosHistoricos
+            .filter((peso) => {
+              // Filtrar o peso ao nascer baseado na observação ou data de nascimento
+              const isPesoAoNascer =
+                peso.observacao === "Peso ao nascer" ||
+                (animal.dataNascimento &&
+                  new Date(peso.dataPeso).getTime() ===
+                    new Date(animal.dataNascimento).getTime());
+              return !isPesoAoNascer;
+            })
             .sort((a, b) => new Date(a.dataPeso) - new Date(b.dataPeso))
-            .slice(1)
-            .map((p) => ({ data: p.dataPeso.split("T")[0], peso: p.peso }))
+            .map((p) => ({
+              data: p.dataPeso.split("T")[0],
+              peso: p.peso.toString(),
+            }))
         : [];
     setPesosHistoricos(pesosAdicionais);
     setEditingId(animal.id);
