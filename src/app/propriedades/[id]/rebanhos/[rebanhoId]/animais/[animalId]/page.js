@@ -362,7 +362,7 @@ export default function AnimalDetailsPage() {
 
         {/* Cards de Informações Principais */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {/* Peso Atual */}
+          {/* Último Peso Registrado */}
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               Último Peso registrado
@@ -652,7 +652,7 @@ export default function AnimalDetailsPage() {
                       {pesoAtual ? (
                         <>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Peso Atual:</span>
+                            <span className="text-gray-600">Último Peso:</span>
                             <span className="font-medium">
                               {pesoAtual.peso.toFixed(1)} kg
                             </span>

@@ -24,6 +24,213 @@ const parseNumberWithComma = (value) => {
   return value.toString().replace(",", ".");
 };
 
+// Função para retornar as fases padrão de cada tipo de animal
+const getFasesPadrao = (tipo) => {
+  const fasesPorTipo = {
+    Caprino: [
+      {
+        nome: "Cabrito",
+        mesInicio: "",
+        mesFim: "",
+        pesoMedioInicioMacho: "",
+        pesoMedioInicioFemea: "",
+        pesoMedioFimMacho: "",
+        pesoMedioFimFemea: "",
+      },
+      {
+        nome: "Jovem",
+        mesInicio: "",
+        mesFim: "",
+        pesoMedioInicioMacho: "",
+        pesoMedioInicioFemea: "",
+        pesoMedioFimMacho: "",
+        pesoMedioFimFemea: "",
+      },
+      {
+        nome: "Adulto",
+        mesInicio: "",
+        mesFim: "",
+        pesoMedioInicioMacho: "",
+        pesoMedioInicioFemea: "",
+        pesoMedioFimMacho: "",
+        pesoMedioFimFemea: "",
+      },
+      {
+        nome: "Veterano",
+        mesInicio: "",
+        mesFim: "",
+        pesoMedioInicioMacho: "",
+        pesoMedioInicioFemea: "",
+        pesoMedioFimMacho: "",
+        pesoMedioFimFemea: "",
+      },
+    ],
+    Ovino: [
+      {
+        nome: "Cordeiro",
+        mesInicio: "",
+        mesFim: "",
+        pesoMedioInicioMacho: "",
+        pesoMedioInicioFemea: "",
+        pesoMedioFimMacho: "",
+        pesoMedioFimFemea: "",
+      },
+      {
+        nome: "Borrego",
+        mesInicio: "",
+        mesFim: "",
+        pesoMedioInicioMacho: "",
+        pesoMedioInicioFemea: "",
+        pesoMedioFimMacho: "",
+        pesoMedioFimFemea: "",
+      },
+      {
+        nome: "Adulto",
+        mesInicio: "",
+        mesFim: "",
+        pesoMedioInicioMacho: "",
+        pesoMedioInicioFemea: "",
+        pesoMedioFimMacho: "",
+        pesoMedioFimFemea: "",
+      },
+      {
+        nome: "Veterano",
+        mesInicio: "",
+        mesFim: "",
+        pesoMedioInicioMacho: "",
+        pesoMedioInicioFemea: "",
+        pesoMedioFimMacho: "",
+        pesoMedioFimFemea: "",
+      },
+    ],
+    Bovino: [
+      {
+        nome: "Bezerro",
+        mesInicio: "",
+        mesFim: "",
+        pesoMedioInicioMacho: "",
+        pesoMedioInicioFemea: "",
+        pesoMedioFimMacho: "",
+        pesoMedioFimFemea: "",
+      },
+      {
+        nome: "Desmame",
+        mesInicio: "",
+        mesFim: "",
+        pesoMedioInicioMacho: "",
+        pesoMedioInicioFemea: "",
+        pesoMedioFimMacho: "",
+        pesoMedioFimFemea: "",
+      },
+      {
+        nome: "Recria",
+        mesInicio: "",
+        mesFim: "",
+        pesoMedioInicioMacho: "",
+        pesoMedioInicioFemea: "",
+        pesoMedioFimMacho: "",
+        pesoMedioFimFemea: "",
+      },
+      {
+        nome: "Engorda",
+        mesInicio: "",
+        mesFim: "",
+        pesoMedioInicioMacho: "",
+        pesoMedioInicioFemea: "",
+        pesoMedioFimMacho: "",
+        pesoMedioFimFemea: "",
+      },
+      {
+        nome: "Adulto",
+        mesInicio: "",
+        mesFim: "",
+        pesoMedioInicioMacho: "",
+        pesoMedioInicioFemea: "",
+        pesoMedioFimMacho: "",
+        pesoMedioFimFemea: "",
+      },
+    ],
+    Suíno: [
+      {
+        nome: "Leitão",
+        mesInicio: "",
+        mesFim: "",
+        pesoMedioInicioMacho: "",
+        pesoMedioInicioFemea: "",
+        pesoMedioFimMacho: "",
+        pesoMedioFimFemea: "",
+      },
+      {
+        nome: "Crescimento",
+        mesInicio: "",
+        mesFim: "",
+        pesoMedioInicioMacho: "",
+        pesoMedioInicioFemea: "",
+        pesoMedioFimMacho: "",
+        pesoMedioFimFemea: "",
+      },
+      {
+        nome: "Terminação",
+        mesInicio: "",
+        mesFim: "",
+        pesoMedioInicioMacho: "",
+        pesoMedioInicioFemea: "",
+        pesoMedioFimMacho: "",
+        pesoMedioFimFemea: "",
+      },
+      {
+        nome: "Adulto",
+        mesInicio: "",
+        mesFim: "",
+        pesoMedioInicioMacho: "",
+        pesoMedioInicioFemea: "",
+        pesoMedioFimMacho: "",
+        pesoMedioFimFemea: "",
+      },
+    ],
+    Equino: [
+      {
+        nome: "Potro",
+        mesInicio: "",
+        mesFim: "",
+        pesoMedioInicioMacho: "",
+        pesoMedioInicioFemea: "",
+        pesoMedioFimMacho: "",
+        pesoMedioFimFemea: "",
+      },
+      {
+        nome: "Doma",
+        mesInicio: "",
+        mesFim: "",
+        pesoMedioInicioMacho: "",
+        pesoMedioInicioFemea: "",
+        pesoMedioFimMacho: "",
+        pesoMedioFimFemea: "",
+      },
+      {
+        nome: "Adulto",
+        mesInicio: "",
+        mesFim: "",
+        pesoMedioInicioMacho: "",
+        pesoMedioInicioFemea: "",
+        pesoMedioFimMacho: "",
+        pesoMedioFimFemea: "",
+      },
+      {
+        nome: "Veterano",
+        mesInicio: "",
+        mesFim: "",
+        pesoMedioInicioMacho: "",
+        pesoMedioInicioFemea: "",
+        pesoMedioFimMacho: "",
+        pesoMedioFimFemea: "",
+      },
+    ],
+  };
+
+  return fasesPorTipo[tipo] || [];
+};
+
 const EditarRacaPage = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -157,13 +364,7 @@ const EditarRacaPage = () => {
             fasesGanhoPeso:
               data.fasesGanhoPeso && data.fasesGanhoPeso.length > 0
                 ? data.fasesGanhoPeso
-                : [
-                    { nome: "Cabrito", mesInicio: "", mesFim: "" },
-                    { nome: "Novilho", mesInicio: "", mesFim: "" },
-                    { nome: "Jovem Adulto", mesInicio: "", mesFim: "" },
-                    { nome: "Adulto", mesInicio: "", mesFim: "" },
-                    { nome: "Senil Veterano", mesInicio: "", mesFim: "" },
-                  ],
+                : getFasesPadrao(selecaoTipo),
           });
         }
       } catch (error) {
