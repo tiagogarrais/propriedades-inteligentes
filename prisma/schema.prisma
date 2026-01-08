@@ -182,7 +182,7 @@ model RacaCaracteristicas {
   carneSucculenta           Boolean @default(true) // Se a carne é suculenta
 
   // Fases do ganho de peso
-  fasesGanhoPeso            Json?   // Array de objetos {id, nome, mesInicio, mesFim}
+  fasesGanhoPeso            Json?   // Array de objetos {id, nome, mesInicio, mesFim, pesoMedioInicioMacho, pesoMedioInicioFemea, pesoMedioFimMacho, pesoMedioFimFemea}
 
   @@unique([tipo, raca])
 }

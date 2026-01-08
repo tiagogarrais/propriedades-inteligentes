@@ -226,7 +226,7 @@ export default function AnimalDetailsPage() {
           {/* Peso Atual */}
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Peso Atual
+              Último Peso registrado
             </h3>
             <div className="text-3xl font-bold text-blue-600 mb-1">
               {pesoAtual ? `${pesoAtual.peso.toFixed(1)} kg` : "Não registrado"}
@@ -401,6 +401,77 @@ export default function AnimalDetailsPage() {
             </div>
           </div>
         )}
+
+        {/* Fases de Vida */}
+        {racaCaracteristicas?.fasesGanhoPeso &&
+          racaCaracteristicas.fasesGanhoPeso.length > 0 && (
+            <div className="bg-white p-6 rounded-lg shadow-md mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                Fases de Vida - Raça {racaCaracteristicas.raca}
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {racaCaracteristicas.fasesGanhoPeso.map((fase, index) => {
+                  const pesoInicio =
+                    animal.sexo === "Macho"
+                      ? fase.pesoMedioInicioMacho
+                      : fase.pesoMedioInicioFemea;
+                  const pesoFim =
+                    animal.sexo === "Macho"
+                      ? fase.pesoMedioFimMacho
+                      : fase.pesoMedioFimFemea;
+
+                  return (
+                    <div
+                      key={fase.id || index}
+                      className="border rounded-lg p-4"
+                    >
+                      <h4 className="font-semibold text-gray-900 mb-3">
+                        {fase.nome}
+                      </h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Período:</span>
+                          <span className="font-medium">
+                            {fase.mesInicio || 0} - {fase.mesFim || "?"} meses
+                          </span>
+                        </div>
+                        {pesoInicio && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">
+                              Peso Início ({animal.sexo}):
+                            </span>
+                            <span className="font-medium">
+                              {pesoInicio.toFixed(1)} kg
+                            </span>
+                          </div>
+                        )}
+                        {pesoFim && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">
+                              Peso Fim ({animal.sexo}):
+                            </span>
+                            <span className="font-medium">
+                              {pesoFim.toFixed(1)} kg
+                            </span>
+                          </div>
+                        )}
+                        {pesoInicio && pesoFim && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">
+                              Ganho Esperado:
+                            </span>
+                            <span className="font-medium text-green-600">
+                              +{(pesoFim - pesoInicio).toFixed(1)} kg
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
         {/* Histórico de Peso */}
         {animal.pesosHistoricos && animal.pesosHistoricos.length > 0 && (

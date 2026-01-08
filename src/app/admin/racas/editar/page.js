@@ -216,6 +216,13 @@ const EditarRacaPage = () => {
     let processedValue = value;
     if (field === "mesInicio" || field === "mesFim") {
       processedValue = value === "" ? null : parseInt(value);
+    } else if (
+      field === "pesoMedioInicioMacho" ||
+      field === "pesoMedioInicioFemea" ||
+      field === "pesoMedioFimMacho" ||
+      field === "pesoMedioFimFemea"
+    ) {
+      processedValue = value === "" ? null : parseFloat(value);
     }
     setCaracteristicas((prev) => ({
       ...prev,
@@ -692,6 +699,86 @@ const EditarRacaPage = () => {
                         }
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Ex: 6"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Peso Médio Início Macho (kg)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={fase.pesoMedioInicioMacho ?? ""}
+                        onChange={(e) =>
+                          handleFaseChange(
+                            index,
+                            "pesoMedioInicioMacho",
+                            e.target.value
+                          )
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Ex: 2.5"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Peso Médio Início Fêmea (kg)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={fase.pesoMedioInicioFemea ?? ""}
+                        onChange={(e) =>
+                          handleFaseChange(
+                            index,
+                            "pesoMedioInicioFemea",
+                            e.target.value
+                          )
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Ex: 2.3"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Peso Médio Fim Macho (kg)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={fase.pesoMedioFimMacho ?? ""}
+                        onChange={(e) =>
+                          handleFaseChange(
+                            index,
+                            "pesoMedioFimMacho",
+                            e.target.value
+                          )
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Ex: 15.0"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Peso Médio Fim Fêmea (kg)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={fase.pesoMedioFimFemea ?? ""}
+                        onChange={(e) =>
+                          handleFaseChange(
+                            index,
+                            "pesoMedioFimFemea",
+                            e.target.value
+                          )
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Ex: 13.5"
                       />
                     </div>
                   </div>
