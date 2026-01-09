@@ -48,7 +48,7 @@ INSERT INTO "RacaCaracteristicas" (
     50,
     33,
     350.0,
-    'menos de 3%',
+    2.5,
     'baixo',
     'baixo',
     'baixo',

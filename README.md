@@ -1,88 +1,96 @@
 # Propriedades Inteligentes
 
-Este é um sistema web para cadastro e gerenciamento inteligente de propriedades rurais, incluindo registro de animais, máquinas, imóveis, plantações e outras entidades relacionadas. Oferece autenticação segura por e-mail, utilizando magic links, e é baseado em tecnologias populares como Node.js, Next.js, React, NextAuth.js, Nodemailer e Prisma.
+Sistema completo para gerenciamento de propriedades rurais, desenvolvido especialmente para produtores e criadores que desejam organizar e controlar todas as atividades da sua propriedade em um só lugar.
 
-## Visão Geral
+## O Que é o Sistema?
 
-Um sistema de gerenciamento inteligente de propriedades rurais permite o controle completo das operações agrícolas, desde o cadastro de propriedades até o monitoramento de ativos e produção. Os usuários podem navegar em uma página inicial pública e acessar áreas restritas após autenticação por e-mail, que envolve o envio de um link de acesso único.
+O Propriedades Inteligentes é uma plataforma online que ajuda você a gerenciar sua fazenda, sítio, rancho ou qualquer tipo de propriedade rural. Através de um computador ou celular com internet, você pode:
 
-## Como o Site Funciona
+- **Cadastrar sua propriedade** com todas as informações importantes
+- **Registrar seus animais** com histórico completo de peso, saúde e produção
+- **Acompanhar rebanhos** organizados por raça e características
+- **Controlar pesagens** e desenvolvimento dos animais ao longo do tempo
+- **Visualizar gráficos** que mostram o crescimento esperado versus real
+- **Gerenciar múltiplas propriedades** se você tiver mais de uma
 
-Qualquer pessoa na internet pode acessar o site e criar sua própria propriedade. Após a criação, o usuário ganha acesso exclusivo para gerenciar essa propriedade, incluindo o registro de ativos e operações. As propriedades podem ser de diversos tipos, como fazendas, terrenos, sítios, chácaras, ranchos, propriedades rurais, glebas, lotes, áreas agrícolas, estâncias, haras, vinícolas ou qualquer outra denominação rural ou agrícola. O sistema é flexível para acomodar diferentes escalas e tipos de exploração.
+## Como Funciona?
 
-## Página Inicial
+1. **Acesse de qualquer lugar**: Basta ter internet no celular ou computador
+2. **Crie sua conta**: Use seu e-mail ou conta do Google
+3. **Cadastre sua propriedade**: Informe o nome, localização e tamanho
+4. **Registre seus rebanhos**: Adicione informações sobre seus animais
+5. **Acompanhe o desenvolvimento**: Registre pesagens e acompanhe o crescimento
 
-A página inicial é uma landing page atrativa e otimizada para SEO, projetada para chamar a atenção e passar confiança aos visitantes. Inclui:
+Não precisa instalar nada - tudo funciona direto no navegador!
 
-- **Seção Hero**: Título impactante, descrição do sistema e botões de chamada para ação (login com Google ou e-mail).
-- **Funcionalidades**: Destaque visual das principais funcionalidades com ícones e descrições.
-- **Status do Desenvolvimento**: Seção que mostra o que já está implementado, como o cadastro de propriedades.
-- **Formulário de Login**: Opção para entrar por e-mail com magic link.
-- **Para Usuários Logados**: Dashboard simples com links para propriedades, perfil e logout.
+## Para Quem é Este Sistema?
 
-A página utiliza Tailwind CSS para design responsivo, cores temáticas verdes (agricultura) e elementos de confiança como ícones de segurança.
+- **Criadores** (bovinos, ovinos, caprinos)
+- **Produtores de suínos**
+- **Criadores de cavalos**
+- **Proprietários rurais** que querem organizar melhor sua propriedade
+- **Técnicos e veterinários** que assessoram produtores
+- **Administradores de fazendas**
 
-## Funcionalidades
+## Funcionalidades Disponíveis
 
-O sistema permite o registro e gerenciamento das seguintes entidades:
+### ✅ Já Funcionando
 
-- **Fazendas**: Informações básicas das propriedades (localização, tamanho, proprietário).
-- **Animais**: Cadastro de rebanhos, raças, saúde, produção (ex.: leite, carne).
-- **Máquinas e Equipamentos**: Inventário de tratores, colheitadeiras, com manutenção e status.
-- **Imóveis**: Construções, galpões, silos e suas condições.
-- **Plantações**: Culturas, áreas plantadas, ciclos de crescimento e colheitas.
-- **Funcionários/Trabalhadores**: Dados pessoais, funções, salários e atividades.
-- **Fornecedores**: Contatos, produtos fornecidos e histórico de compras.
-- **Clientes**: Dados para vendas de produtos agrícolas.
-- **Produtos Agrícolas**: Itens produzidos, quantidades e rastreamento.
-- **Insumos/Estoque**: Materiais como sementes, adubos, com níveis de estoque.
-- **Transações Financeiras**: Receitas, despesas e orçamentos.
-- **Registros de Saúde**: Vacinas, doenças para animais e plantações.
-- **Manutenção**: Agendamentos para máquinas e imóveis.
-- **Documentos Legais**: Licenças, contratos e certificados.
-- **Dados Meteorológicos**: Registros de clima para planejamento.
-- **Relatórios e Análises**: Dashboards com métricas de produtividade.
+- **Gestão de Propriedades**: Cadastre fazendas, sítios, ranchos com localização completa
+- **Controle de Rebanhos**: Organize seus animais por grupos e raças
+- **Registro Individual de Animais**:
+  - Identificação única para cada animal
+  - Data de nascimento
+  - Sexo e raça
+  - Histórico de pesagens
+- **Acompanhamento de Peso**:
+  - Registre pesagens com data
+  - Veja o último peso registrado
+  - Compare com o peso esperado para a idade
+  - Gráficos mostrando a curva de crescimento
+- **Fases de Vida dos Animais**:
+  - Identifica automaticamente a fase atual (bezerro, jovem, adulto, etc.)
+  - Mostra se o animal está acima, dentro ou abaixo do peso esperado
+  - Características específicas por raça e tipo de animal
+- **Múltiplas Raças Cadastradas**:
+  - Caprinos: Boer, Saanen, Alpina, Anglo-Nubiana e mais
+  - Ovinos: Dorper, Santa Inês, Suffolk e mais
+  - Bovinos: Nelore, Angus, Hereford e mais
+  - Suínos: Landrace, Duroc, Large White e mais
+  - Equinos: Mangalarga, Crioulo, Quarto de Milha e mais
 
-## Status do Desenvolvimento
+### 🚧 Em Desenvolvimento
 
-O sistema está em desenvolvimento contínuo. Atualmente, as seguintes funcionalidades estão implementadas:
+- Controle de vacinas e medicamentos
+- Registro de partos e reprodução
+- Gestão de pastagens
+- Controle financeiro (custos e receitas)
+- Relatórios e exportação de dados
+- Aplicativo mobile
 
-- **Página Inicial Atraente**: Landing page com seções hero, funcionalidades, status e formulário de login, otimizada para SEO.
-- **Autenticação Segura**: Login via Google ou magic links por e-mail.
-- **Perfis de Usuário**: Cadastro e atualização de informações pessoais.
-- **Cadastro de Propriedades**: Usuários podem criar e gerenciar suas próprias propriedades (fazendas, terrenos, sítios, etc.).
+## Vantagens de Usar o Sistema
 
-Outras funcionalidades estão em planejamento e serão adicionadas em futuras versões.
+✅ **Organização**: Todos os dados da sua propriedade em um só lugar  
+✅ **Acesso fácil**: Use de qualquer dispositivo com internet  
+✅ **Histórico completo**: Nunca mais perca informações importantes  
+✅ **Tomada de decisão**: Gráficos e relatórios para decidir melhor  
+✅ **Economia de tempo**: Menos papelada, mais praticidade
 
-## Tecnologias Utilizadas
+## Como Começar?
 
-Para começar, você precisará das seguintes tecnologias:
+1. **Acesse o sistema** através do link fornecido
+2. **Crie sua conta** com e-mail ou Google
+3. **Cadastre sua primeira propriedade**
+4. **Comece a registrar seus animais**
+5. **Acompanhe o desenvolvimento** do seu rebanho
 
-- **Node.js**: Ambiente de execução JavaScript no servidor.
-- **Next.js**: Framework React para renderização no lado do servidor.
-- **React**: Biblioteca JavaScript para criar interfaces de usuário.
-- **NextAuth.js**: Biblioteca para implementar autenticação segura.
-  - **Nodemailer**: Para o envio de e-mails.
-  - **Credenciais para envio de e-mails no arquivo .env**.
-- **Prisma**: ORM para gerenciamento do banco de dados.
-- **Banco de dados - PostgreSQL**: Para armazenar dados do sistema.
+## Precisa de Ajuda?
 
-## Como Usar
-
-1. Clone este repositório: `git clone https://github.com/tiagogarrais/sistema-gerenciamento-fazendas`.
-2. Copie o arquivo .env.example e o renomeie para .env.
-3. Preencha as informações necessárias no arquivo .env (credenciais de e-mail, banco de dados).
-4. Execute `npm install` para instalar as dependências.
-5. Execute `npx prisma generate` para gerar o cliente Prisma.
-6. Execute `npx prisma db push` ou `npx prisma migrate dev` para sincronizar o schema com o banco de dados.
-7. Execute `npm run dev` para iniciar o servidor de desenvolvimento.
-8. Personalize a interface do usuário e adicione recursos conforme necessário.
-9. Implemente seu sistema e comece a usá-lo.
-
-## Contribuições
-
-Contribuições são bem-vindas! Sinta-se à vontade para fazer melhorias, correções de bugs ou adicionar recursos adicionais a este sistema. Basta abrir uma issue ou enviar um pull request.
+- Para questões técnicas sobre instalação: veja o [README-TECH.md](README-TECH.md)
+- Para suporte: entre em contato através do e-mail no sistema
+- Para sugestões: estamos sempre abertos a melhorias!
 
 ---
 
-Criado por Tiago das Graças Arrais - [Perfil no GitHub](https://github.com/tiagogarrais)
+**Desenvolvido para simplificar a vida no campo**  
+Criado por Tiago das Graças Arrais - [GitHub](https://github.com/tiagogarrais)
