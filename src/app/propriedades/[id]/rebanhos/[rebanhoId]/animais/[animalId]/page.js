@@ -337,16 +337,26 @@ export default function AnimalDetailsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-4">
+          <Link
+            href={`/propriedades/${propriedadeId}/rebanhos/${rebanhoId}`}
+            className="text-blue-600 hover:text-blue-800 flex items-center"
+          >
+            ← Voltar ao Rebanho
+          </Link>
+        </div>
+        {/* Título da Página */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            Dashboard do Animal
+          </h1>
+          <p className="text-lg text-gray-600">
+            Visualize todas as informações e métricas do animal selecionado
+          </p>
+        </div>
+
         {/* Header */}
         <div className="mb-8">
-          <div className="mb-4">
-            <Link
-              href={`/propriedades/${propriedadeId}/rebanhos/${rebanhoId}`}
-              className="text-blue-600 hover:text-blue-800 flex items-center"
-            >
-              ← Voltar ao Rebanho
-            </Link>
-          </div>
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
               {animal.nome || `Animal ${animal.numeroIdentificacao}`}
@@ -406,12 +416,22 @@ export default function AnimalDetailsPage() {
                 Total: +{ganhoPeso.total.toFixed(1)} kg em {ganhoPeso.dias} dias
               </p>
             )}
-            {racaCaracteristicas?.ganhoPesoDiaGramas && (
-              <p className="text-sm text-gray-500">
-                Média da raça:{" "}
-                {racaCaracteristicas.ganhoPesoDiaGramas.toFixed(0)}g/dia
-              </p>
-            )}
+            {/* Usa ganho de peso diário da fase atual, calculado dinamicamente */}
+            {(() => {
+              const faseAtual = obterFaseAtual();
+              const ganhoPesoDiaFase = faseAtual
+                ? animal.sexo === "Macho"
+                  ? faseAtual.ganhoPesoDiaGramasMacho
+                  : faseAtual.ganhoPesoDiaGramasFemea
+                : null;
+              if (ganhoPesoDiaFase == null) return null;
+              return (
+                <p className="text-sm text-gray-500">
+                  Média da raça (fase {faseAtual?.nome || "atual"}):{" "}
+                  {ganhoPesoDiaFase.toFixed(0)}g/dia
+                </p>
+              );
+            })()}
           </div>
 
           {/* Status */}
@@ -442,101 +462,137 @@ export default function AnimalDetailsPage() {
               Comparação com a Raça {racaCaracteristicas.raca}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* Comparação de Peso */}
-              {pesoAtual &&
-                racaCaracteristicas.pesoFemeaAdulta &&
-                animal.sexo === "Fêmea" && (
+              {/* Peso Atual vs. Peso Adulto da Raça */}
+              <div className="border rounded-lg p-4">
+                <h4 className="font-semibold text-gray-900 mb-2">Peso Atual</h4>
+                <div className="text-2xl font-bold">
+                  {pesoAtual
+                    ? `${pesoAtual.peso.toFixed(1)} kg`
+                    : "Não registrado"}
+                </div>
+                <p className="text-sm text-gray-500">
+                  Peso Adulto da Raça:{" "}
+                  {animal.sexo === "Macho" &&
+                  racaCaracteristicas.pesoMachoAdulto
+                    ? `${racaCaracteristicas.pesoMachoAdulto.toFixed(1)} kg`
+                    : animal.sexo === "Fêmea" &&
+                      racaCaracteristicas.pesoFemeaAdulta
+                    ? `${racaCaracteristicas.pesoFemeaAdulta.toFixed(1)} kg`
+                    : "-"}
+                </p>
+              </div>
+
+              {/* Ganho de Peso Diário - agora usa fase atual */}
+              {(() => {
+                const faseAtual = obterFaseAtual();
+                const ganhoPesoDiaRaca = faseAtual
+                  ? animal.sexo === "Macho"
+                    ? faseAtual.ganhoPesoDiaGramasMacho
+                    : faseAtual.ganhoPesoDiaGramasFemea
+                  : null;
+                // Só exibe se houver dados do animal ou da raça
+                if (!ganhoPeso && ganhoPesoDiaRaca == null) return null;
+                return (
                   <div className="border rounded-lg p-4">
                     <h4 className="font-semibold text-gray-900 mb-2">
-                      Peso vs Média da Raça (Fêmea)
+                      Ganho de Peso Diário
                     </h4>
-                    <div className="flex items-center justify-between">
-                      <span>Animal: {pesoAtual.peso.toFixed(1)} kg</span>
-                      <span>
-                        Média: {racaCaracteristicas.pesoFemeaAdulta.toFixed(1)}{" "}
-                        kg
-                      </span>
+                    <div className="text-2xl font-bold">
+                      {ganhoPeso
+                        ? `${ganhoPeso.porDia.toFixed(0)} g/dia`
+                        : "Sem dados"}
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                      <div
-                        className={`h-2 rounded-full ${
-                          pesoAtual.peso >= racaCaracteristicas.pesoFemeaAdulta
-                            ? "bg-green-600"
-                            : "bg-yellow-600"
-                        }`}
-                        style={{
-                          width: `${Math.min(
-                            (pesoAtual.peso /
-                              racaCaracteristicas.pesoFemeaAdulta) *
-                              100,
-                            100
-                          )}%`,
-                        }}
-                      ></div>
-                    </div>
+                    {ganhoPesoDiaRaca != null && (
+                      <p className="text-sm text-gray-500">
+                        Média da Raça (fase {faseAtual?.nome || "atual"}):{" "}
+                        {ganhoPesoDiaRaca.toFixed(0)} g/dia
+                      </p>
+                    )}
                   </div>
-                )}
+                );
+              })()}
 
-              {pesoAtual &&
-                racaCaracteristicas.pesoMachoAdulto &&
-                animal.sexo === "Macho" && (
-                  <div className="border rounded-lg p-4">
-                    <h4 className="font-semibold text-gray-900 mb-2">
-                      Peso vs Média da Raça (Macho)
-                    </h4>
-                    <div className="flex items-center justify-between">
-                      <span>Animal: {pesoAtual.peso.toFixed(1)} kg</span>
-                      <span>
-                        Média: {racaCaracteristicas.pesoMachoAdulto.toFixed(1)}{" "}
-                        kg
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                      <div
-                        className={`h-2 rounded-full ${
-                          pesoAtual.peso >= racaCaracteristicas.pesoMachoAdulto
-                            ? "bg-green-600"
-                            : "bg-yellow-600"
-                        }`}
-                        style={{
-                          width: `${Math.min(
-                            (pesoAtual.peso /
-                              racaCaracteristicas.pesoMachoAdulto) *
-                              100,
-                            100
-                          )}%`,
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-                )}
-
-              {/* Informações da Raça */}
+              {/* Idade do Animal vs. Maturidade Sexual da Raça */}
               <div className="border rounded-lg p-4">
                 <h4 className="font-semibold text-gray-900 mb-2">
-                  Características da Raça
+                  Idade x Maturidade Sexual
                 </h4>
-                <div className="space-y-2 text-sm">
-                  {racaCaracteristicas.origem && (
-                    <p>
-                      <strong>Origem:</strong> {racaCaracteristicas.origem}
-                    </p>
-                  )}
-                  {racaCaracteristicas.maturidadeSexual && (
-                    <p>
-                      <strong>Maturidade Sexual:</strong>{" "}
-                      {Math.floor(racaCaracteristicas.maturidadeSexual / 30)}{" "}
-                      meses
-                    </p>
-                  )}
-                  {racaCaracteristicas.periodoGestacao && (
-                    <p>
-                      <strong>Período Gestação:</strong>{" "}
-                      {racaCaracteristicas.periodoGestacao} dias
-                    </p>
-                  )}
-                </div>
+                <div className="text-2xl font-bold">{idade ? idade : "-"}</div>
+                <p className="text-sm text-gray-500">
+                  Maturidade Sexual da Raça:{" "}
+                  {racaCaracteristicas.maturidadeSexual
+                    ? `${racaCaracteristicas.maturidadeSexual} meses`
+                    : "-"}
+                </p>
               </div>
+
+              {/* Percentual de Gordura da Carne */}
+              {typeof racaCaracteristicas.percentualGorduraCarne ===
+                "number" && (
+                <div className="border rounded-lg p-4">
+                  <h4 className="font-semibold text-gray-900 mb-2">
+                    Gordura da Carne
+                  </h4>
+                  <div className="text-2xl font-bold">
+                    {`${racaCaracteristicas.percentualGorduraCarne.toFixed(
+                      1
+                    )}%`}
+                  </div>
+                  <p className="text-sm text-gray-500">
+                    Percentual típico da raça
+                  </p>
+                </div>
+              )}
+
+              {/* Idade ao Abate */}
+              {(racaCaracteristicas.abatePrecoce ||
+                racaCaracteristicas.abateConvencional ||
+                racaCaracteristicas.abateTardio) && (
+                <div className="border rounded-lg p-4">
+                  <h4 className="font-semibold text-gray-900 mb-2">
+                    Idade ao Abate
+                  </h4>
+                  <div className="text-base">
+                    {racaCaracteristicas.abatePrecoce && (
+                      <div>
+                        Precoce:{" "}
+                        <span className="font-bold">
+                          {racaCaracteristicas.abatePrecoce} meses
+                        </span>
+                      </div>
+                    )}
+                    {racaCaracteristicas.abateConvencional && (
+                      <div>
+                        Convencional:{" "}
+                        <span className="font-bold">
+                          {racaCaracteristicas.abateConvencional} meses
+                        </span>
+                      </div>
+                    )}
+                    {racaCaracteristicas.abateTardio && (
+                      <div>
+                        Tardio:{" "}
+                        <span className="font-bold">
+                          {racaCaracteristicas.abateTardio} meses
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Quantidade de Crias por Parto */}
+              {racaCaracteristicas.quantidadeCabritosParto && (
+                <div className="border rounded-lg p-4">
+                  <h4 className="font-semibold text-gray-900 mb-2">
+                    Crias por Parto
+                  </h4>
+                  <div className="text-2xl font-bold">
+                    {racaCaracteristicas.quantidadeCabritosParto}
+                  </div>
+                  <p className="text-sm text-gray-500">Média da raça</p>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -640,6 +696,24 @@ export default function AnimalDetailsPage() {
                           </span>
                         </div>
                       )}
+                      {/* Ganho de Peso Diário Esperado (calculado dinamicamente por fase) */}
+                      {(() => {
+                        const ganhoPesoDiaFase =
+                          animal.sexo === "Macho"
+                            ? faseAtual.ganhoPesoDiaGramasMacho
+                            : faseAtual.ganhoPesoDiaGramasFemea;
+                        if (ganhoPesoDiaFase == null) return null;
+                        return (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">
+                              Ganho Diário Esperado:
+                            </span>
+                            <span className="font-medium text-blue-600">
+                              {ganhoPesoDiaFase.toFixed(0)} g/dia
+                            </span>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
 

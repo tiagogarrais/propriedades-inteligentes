@@ -13,7 +13,7 @@ const prisma = new PrismaClient({ adapter });
 
 async function main() {
   // Lista de raças com características detalhadas
-  const racasCaracteristicas = [
+  const racasCaracteristicasRaw = [
     // Caprinos
     {
       tipo: "Caprino",
@@ -2855,6 +2855,55 @@ async function main() {
       ],
     },
   ];
+
+  // Calcula ganho de peso diário por fase e remove campo global
+  const racasCaracteristicas = racasCaracteristicasRaw.map((raca) => {
+    const fasesGanhoPeso = (raca.fasesGanhoPeso || []).map((fase) => {
+      const {
+        pesoMedioInicioMacho,
+        pesoMedioFimMacho,
+        pesoMedioInicioFemea,
+        pesoMedioFimFemea,
+        mesInicio,
+        mesFim,
+      } = fase;
+      let ganhoPesoDiaGramasMacho = null;
+      let ganhoPesoDiaGramasFemea = null;
+      if (
+        typeof pesoMedioInicioMacho === "number" &&
+        typeof pesoMedioFimMacho === "number" &&
+        typeof mesInicio === "number" &&
+        typeof mesFim === "number" &&
+        mesFim > mesInicio
+      ) {
+        ganhoPesoDiaGramasMacho =
+          ((pesoMedioFimMacho - pesoMedioInicioMacho) * 1000) /
+          ((mesFim - mesInicio) * 30.44);
+      }
+      if (
+        typeof pesoMedioInicioFemea === "number" &&
+        typeof pesoMedioFimFemea === "number" &&
+        typeof mesInicio === "number" &&
+        typeof mesFim === "number" &&
+        mesFim > mesInicio
+      ) {
+        ganhoPesoDiaGramasFemea =
+          ((pesoMedioFimFemea - pesoMedioInicioFemea) * 1000) /
+          ((mesFim - mesInicio) * 30.44);
+      }
+      return {
+        ...fase,
+        ...(ganhoPesoDiaGramasMacho != null ? { ganhoPesoDiaGramasMacho } : {}),
+        ...(ganhoPesoDiaGramasFemea != null ? { ganhoPesoDiaGramasFemea } : {}),
+      };
+    });
+    // Remove campo global ganhoPesoDiaGramas
+    const { ganhoPesoDiaGramas, ...racaRest } = raca;
+    return {
+      ...racaRest,
+      fasesGanhoPeso,
+    };
+  });
 
   console.log("🌱 Iniciando seed das características das raças...");
 
